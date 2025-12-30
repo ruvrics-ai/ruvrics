@@ -5,6 +5,8 @@ Provides clear, actionable error messages for users.
 From spec Section 8 - Error Handling.
 """
 
+from typing import Optional
+
 
 class RuvricsError(Exception):
     """Base exception for all Ruvrics errors."""
@@ -131,6 +133,3 @@ class ModelNotSupportedError(RuvricsError):
         super().__init__(message)
         self.model = model
         self.supported_models = supported_models
-
-
-from typing import Optional
