@@ -46,6 +46,7 @@ class RunResult(BaseModel):
         """Pydantic configuration."""
 
         json_encoders = {datetime: lambda v: v.isoformat()}
+        protected_namespaces = ()  # Allow fields starting with "model_"
 
 
 class InputConfig(BaseModel):

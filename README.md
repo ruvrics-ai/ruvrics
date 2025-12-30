@@ -1,55 +1,67 @@
-# Ruvrics - AI Behavioral Stability & Reliability Engine
+# Ruvrics
 
-**Version:** 0.1.0 (MVP)
-**Status:** 🚧 In Development
+**AI Behavioral Stability & Reliability Engine**
 
-> Measure whether an LLM-based system behaves consistently under identical conditions, explain *why* it is unstable, and suggest concrete fixes **before deployment**.
+Ruvrics measures whether an LLM system behaves consistently under identical conditions. It runs N identical requests and analyzes variance across semantic meaning, tool usage, output structure, and length.
 
----
+## What is Stability?
 
-## Overview
+LLMs are nondeterministic by nature. Even with `temperature=0`, the same input can produce different outputs. Ruvrics quantifies this instability and identifies its root causes.
 
-Ruvrics helps developers answer the critical question: **"Is my LLM system stable enough to ship?"**
+**Stability Score**: A weighted average of 4 core metrics:
+- **Semantic Consistency (40%)**: Do outputs mean the same thing?
+- **Tool Consistency (25%)**: Does the model use tools consistently?
+- **Structural Consistency (20%)**: Is the output format stable?
+- **Length Consistency (15%)**: Are responses similarly verbose?
 
-By running identical requests multiple times, Ruvrics measures:
-- **Semantic Consistency** - Do outputs mean the same thing?
-- **Tool Usage Consistency** - Does the model reliably call the right tools?
-- **Structural Consistency** - Is the output format stable?
-- **Length Consistency** - Does response length vary significantly?
+## Risk Classifications
 
-## Features
-
-✅ **Multi-Provider Support** - Works with OpenAI and Anthropic APIs
-✅ **Comprehensive Metrics** - 4 core stability measurements
-✅ **Root Cause Analysis** - Identifies WHY your system is unstable
-✅ **Actionable Recommendations** - Get concrete fixes, not just scores
-✅ **Beautiful CLI** - Rich terminal output with progress indicators
-✅ **Pattern-Based Safety Detection** - Flags risky claims and guarantees
+- **SAFE (≥90%)**: System is stable and ready for production
+- **RISKY (70-89%)**: Review recommended fixes before shipping
+- **DO_NOT_SHIP (<70%)**: Critical instability issues detected
 
 ## Installation
 
+### Prerequisites
+
+- Python 3.10 or higher
+- OpenAI API key (for GPT models)
+- Anthropic API key (for Claude models)
+
+### Install Dependencies
+
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd ruvrics
-
-# Install in development mode
 pip install -e .
+```
 
-# Or install with dev dependencies
-pip install -e ".[dev]"
+### Configure API Keys
+
+Create a `.env` file in the project root:
+
+```bash
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Or export them as environment variables:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
 ## Quick Start
 
-1. **Set up your API keys**
+### Basic Usage
 
 ```bash
-cp .env.example .env
-# Edit .env and add your OpenAI or Anthropic API key
+ruvrics stability \
+  --input examples/query_simple.json \
+  --model gpt-4-turbo \
+  --runs 20
 ```
 
-2. **Run a stability test**
+### With System Prompt
 
 ```bash
 ruvrics stability \
@@ -59,37 +71,275 @@ ruvrics stability \
   --runs 20
 ```
 
-## Requirements
+### Save Results
 
-- Python 3.10+
-- OpenAI API key (for OpenAI models)
-- Anthropic API key (for Anthropic models)
+```bash
+ruvrics stability \
+  --input examples/query.json \
+  --model claude-sonnet-4 \
+  --runs 30 \
+  --output results.json
+```
+
+## Input Formats
+
+Ruvrics supports three input formats:
+
+### Format A: Simple (system_prompt + user_input)
+
+```json
+{
+  "system_prompt": "You are a helpful assistant.",
+  "user_input": "What is Python?"
+}
+```
+
+### Format B: Messages
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "What is Python?"}
+  ]
+}
+```
+
+### Format C: Tool-enabled
+
+```json
+{
+  "user_input": "Find flights to Tokyo",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "search_flights",
+        "description": "Search for flights",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "origin": {"type": "string"},
+            "destination": {"type": "string"}
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+You can also combine system prompt from a file with tools in JSON:
+
+```bash
+ruvrics stability \
+  --prompt system_prompt.txt \
+  --input query_with_tools.json \
+  --model gpt-4o \
+  --runs 20
+```
+
+## Supported Models
+
+### OpenAI
+- `gpt-4-turbo`
+- `gpt-4o`
+- `gpt-4o-mini`
+- `gpt-3.5-turbo`
+
+### Anthropic
+- `claude-sonnet-4`
+- `claude-opus-4`
+- `claude-haiku-4`
+
+## Understanding the Report
+
+### Component Breakdown
+
+Each metric gets a score (0-100%) and a variance classification:
+
+- **LOW variance**: Metric is stable (green)
+- **MEDIUM variance**: Some inconsistency (yellow)
+- **HIGH variance**: Significant instability (red)
+
+### Instability Fingerprint
+
+When issues are detected, Ruvrics identifies the root cause:
+
+1. **NONDETERMINISTIC_TOOL_ROUTING**: Model inconsistently decides whether to use tools
+2. **TOOL_CONFUSION**: Tool usage affects output unpredictably
+3. **UNCONSTRAINED_ASSERTIONS**: Model makes risky claims inconsistently
+4. **UNDERSPECIFIED_PROMPT**: Prompt allows too much interpretation freedom
+5. **FORMAT_INCONSISTENCY**: Output format not reliably enforced
+6. **VERBOSITY_DRIFT**: Response length varies significantly
+7. **GENERAL_INSTABILITY**: Multiple sources of variation
+
+### Recommendations
+
+Based on root causes, Ruvrics provides actionable fixes:
+
+- **Prompt improvements**: Add constraints, examples, or negative instructions
+- **Code changes**: Move decision logic outside the LLM
+- **Config adjustments**: Lower temperature, enforce schemas
+
+## Exit Codes
+
+- `0`: SAFE - System is stable
+- `1`: RISKY - Review recommended
+- `2`: DO_NOT_SHIP - Critical issues
+- `3`: Configuration error
+- `4`: Insufficient successful runs
+- `5`: Embedding error
+- `6`: Invalid JSON input
+- `7`: General Ruvrics error
+- `8`: Unexpected error
+
+## Examples
+
+See the `examples/` directory for sample input files:
+
+- `query_simple.json`: Basic query without tools
+- `query.json`: Query with tool definitions
+- `query_messages.json`: Using messages format
+- `system_prompt.txt`: Sample system prompt
+
+## Development
+
+### Run Tests
+
+```bash
+pytest tests/ -v
+```
+
+### Run with Coverage
+
+```bash
+pytest tests/ --cov=ruvrics --cov-report=html
+```
+
+### Code Quality
+
+```bash
+# Format code
+black ruvrics/ tests/
+
+# Lint code
+ruff check ruvrics/ tests/
+
+# Type checking
+mypy ruvrics/
+```
 
 ## Project Structure
 
 ```
 ruvrics/
-├── ruvrics/           # Main package
-│   ├── core/          # Execution engine
-│   ├── metrics/       # Stability metrics
-│   ├── analysis/      # Root cause & recommendations
-│   ├── output/        # Formatting & reporting
-│   └── utils/         # Utilities
-├── tests/             # Test suite
-├── examples/          # Example prompts and queries
-└── docs/              # Documentation
+├── ruvrics/
+│   ├── __init__.py
+│   ├── __main__.py          # Entry point
+│   ├── cli.py               # Command-line interface
+│   ├── config.py            # Configuration management
+│   ├── analysis/            # Analysis components
+│   │   ├── fingerprint.py   # Root cause identification
+│   │   ├── recommender.py   # Recommendation engine
+│   │   └── scorer.py        # Overall stability scorer
+│   ├── core/                # Core functionality
+│   │   ├── adapters.py      # LLM provider adapters
+│   │   ├── executor.py      # Execution orchestration
+│   │   └── models.py        # Data models
+│   ├── metrics/             # Stability metrics
+│   │   ├── claims.py        # Claim pattern detection
+│   │   ├── length.py        # Length consistency
+│   │   ├── semantic.py      # Semantic consistency
+│   │   ├── structural.py    # Structural consistency
+│   │   └── tool.py          # Tool usage consistency
+│   ├── output/              # Output formatting
+│   │   └── formatter.py     # Terminal report formatter
+│   └── utils/               # Utilities
+│       └── errors.py        # Custom exceptions
+├── tests/                   # Test suite
+├── examples/                # Example input files
+├── pyproject.toml          # Project configuration
+└── README.md               # This file
 ```
 
-## Development Status
+## Implementation Details
 
-This is an MVP implementation. See the full specification in `AI_STABILITY_FINAL_SPEC.md`.
+### Semantic Consistency
 
-**Current Phase:** Core Infrastructure (Phase 1)
+Uses sentence-transformers (all-MiniLM-L6-v2) to compute embeddings and measures cosine similarity to the centroid. This is O(N) instead of O(N²) pairwise comparison.
+
+### Tool Consistency
+
+Normalizes tool call patterns (order-independent frozensets) and measures how often the most common pattern appears.
+
+### Structural Consistency
+
+Detects output structure (JSON, Markdown, Text, etc.) and measures how often the most common structure appears.
+
+### Length Consistency
+
+Uses Coefficient of Variation (CV = std/mean) to measure length variance. Lower CV = more consistent.
+
+### Claim Detection
+
+Pattern-based detection of risky claims:
+- Guarantees and absolute promises
+- False authority claims
+- Hallucinated specifics
+- Overconfident assertions
+
+## Thresholds
+
+All thresholds are configurable in `ruvrics/config.py`:
+
+**Risk Classification:**
+- SAFE: score ≥ 90%
+- RISKY: 70% ≤ score < 90%
+- DO_NOT_SHIP: score < 70%
+
+**Semantic Variance:**
+- LOW: similarity ≥ 85%
+- MEDIUM: 70% ≤ similarity < 85%
+- HIGH: similarity < 70%
+
+**Tool Variance:**
+- LOW: consistency ≥ 95%
+- MEDIUM: 80% ≤ consistency < 95%
+- HIGH: consistency < 80%
+
+**Structural Variance:**
+- LOW: consistency ≥ 95%
+- MEDIUM: 85% ≤ consistency < 95%
+- HIGH: consistency < 85%
+
+**Length Variance (CV):**
+- LOW: CV < 0.15
+- MEDIUM: 0.15 ≤ CV < 0.30
+- HIGH: CV ≥ 0.30
+
+## Specification
+
+This implementation follows the exact specification in:
+- `docs/AI_STABILITY_FINAL_SPEC.md` - Complete technical specification
+- `docs/IMPLEMENTATION_INSTRUCTIONS.md` - Implementation guide
+- `docs/CONFIGURATION_GUIDE.md` - Configuration patterns
 
 ## License
 
-MIT License - See LICENSE file for details
+This project is licensed under the MIT License.
 
----
+## Contributing
 
-**Documentation:** [Full Specification](AI_STABILITY_FINAL_SPEC.md) | [Implementation Guide](IMPLEMENTATION_INSTRUCTIONS.md)
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass: `pytest tests/ -v`
+5. Format code: `black ruvrics/ tests/`
+6. Submit a pull request
+
+## Support
+
+For issues, questions, or feature requests, please open an issue on GitHub.

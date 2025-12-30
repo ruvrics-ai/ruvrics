@@ -1,0 +1,30 @@
+{
+  "user_input": "I need to book a flight from San Francisco to Tokyo for next month. What are my options?",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "search_flights",
+        "description": "Search for available flights between two cities",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "string",
+              "description": "Departure city"
+            },
+            "destination": {
+              "type": "string",
+              "description": "Arrival city"
+            },
+            "date": {
+              "type": "string",
+              "description": "Travel date"
+            }
+          },
+          "required": ["origin", "destination"]
+        }
+      }
+    }
+  ]
+}

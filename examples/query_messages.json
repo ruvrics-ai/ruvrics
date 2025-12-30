@@ -1,0 +1,35 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a data analysis assistant. Analyze user queries and provide insights based on the available data tools."
+    },
+    {
+      "role": "user",
+      "content": "What were our top selling products last quarter?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "query_database",
+        "description": "Query the sales database for product information",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "SQL query to execute"
+            },
+            "time_period": {
+              "type": "string",
+              "description": "Time period for the query (e.g., 'last_quarter', 'last_month')"
+            }
+          },
+          "required": ["query"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "system_prompt": "You are a concise technical writing assistant. Provide brief, accurate explanations of technical concepts.",
+  "user_input": "Explain what Docker containers are and why they're useful."
+}
