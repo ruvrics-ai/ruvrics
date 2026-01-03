@@ -54,3 +54,6 @@ Thumbs.db
 
 # Documentation
 docs/_build/
+
+# Private context files
+CLAUDE.md
