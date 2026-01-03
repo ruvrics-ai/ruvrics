@@ -60,7 +60,7 @@ class TestStabilityScorer:
             tools=[{"type": "function", "function": {"name": "search"}}],
         )
 
-        result = calculate_stability(
+        result, _ = calculate_stability(
             runs=runs,
             input_config=input_config,
             model="test-model",
@@ -94,7 +94,7 @@ class TestStabilityScorer:
             tools=[{"type": "function", "function": {"name": "search"}}],
         )
 
-        result = calculate_stability(
+        result, _ = calculate_stability(
             runs=runs,
             input_config=input_config,
             model="test-model",

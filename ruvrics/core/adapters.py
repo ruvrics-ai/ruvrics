@@ -67,7 +67,10 @@ class OpenAIAdapter(LLMAdapter):
         """Initialize OpenAI adapter with API key."""
         super().__init__(model_config, config)
         api_key = config.get_api_key("openai")
-        self.client = openai.OpenAI(api_key=api_key)
+        self.client = openai.OpenAI(
+            api_key=api_key,
+            timeout=config.api_timeout_seconds,
+        )
 
     def call(
         self, messages: list[dict[str, str]], tools: list[dict[str, Any]] | None = None
@@ -166,7 +169,10 @@ class AnthropicAdapter(LLMAdapter):
         """Initialize Anthropic adapter with API key."""
         super().__init__(model_config, config)
         api_key = config.get_api_key("anthropic")
-        self.client = anthropic.Anthropic(api_key=api_key)
+        self.client = anthropic.Anthropic(
+            api_key=api_key,
+            timeout=config.api_timeout_seconds,
+        )
 
     def call(
         self, messages: list[dict[str, str]], tools: list[dict[str, Any]] | None = None

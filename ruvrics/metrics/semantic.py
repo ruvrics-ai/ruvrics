@@ -122,6 +122,27 @@ class SemanticAnalyzer:
             return "HIGH"
 
 
+def get_embeddings(outputs: list[str]) -> np.ndarray:
+    """
+    Get embeddings for a list of outputs.
+
+    Args:
+        outputs: List of output texts
+
+    Returns:
+        Array of embeddings
+
+    Raises:
+        EmbeddingError: If embedding fails
+    """
+    try:
+        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        embeddings = model.encode(outputs)
+        return embeddings
+    except Exception as e:
+        raise EmbeddingError(f"Failed to generate embeddings: {e}")
+
+
 def calculate_semantic_consistency(
     outputs: list[str], config: Config | None = None
 ) -> MetricResult:

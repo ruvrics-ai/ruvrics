@@ -46,6 +46,8 @@ htmlcov/
 # AI Stability results
 .ruvrics/
 results/
+ruvrics_report.md
+ruvrics_report.json
 
 # OS
 .DS_Store

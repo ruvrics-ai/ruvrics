@@ -51,6 +51,9 @@ class Config(BaseModel):
         default_factory=lambda: int(os.getenv("MAX_RETRIES", "3"))
     )
     retry_backoff_multiplier: float = 2.0
+    api_timeout_seconds: float = Field(
+        default_factory=lambda: float(os.getenv("API_TIMEOUT", "60.0"))
+    )
 
     # Embedding model (from spec Appendix C)
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -149,6 +152,7 @@ SUPPORTED_MODELS: dict[str, ModelConfig] = {
     ),
     "gpt-4": ModelConfig(name="gpt-4", provider="openai", supports_tools=True),
     "gpt-4o": ModelConfig(name="gpt-4o", provider="openai", supports_tools=True),
+    "gpt-4o-mini": ModelConfig(name="gpt-4o-mini", provider="openai", supports_tools=True),
     "gpt-3.5-turbo": ModelConfig(
         name="gpt-3.5-turbo", provider="openai", supports_tools=True
     ),
@@ -161,6 +165,9 @@ SUPPORTED_MODELS: dict[str, ModelConfig] = {
     ),
     "claude-sonnet-3.5": ModelConfig(
         name="claude-3-5-sonnet-20241022", provider="anthropic", supports_tools=True
+    ),
+    "claude-haiku-4": ModelConfig(
+        name="claude-haiku-4-20250514", provider="anthropic", supports_tools=True
     ),
 }
 

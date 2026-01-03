@@ -1,24 +1,24 @@
 # Ruvrics
 
-**AI Behavioral Stability & Reliability Engine**
+AI Behavioral Stability and Reliability Engine
 
 Ruvrics measures whether an LLM system behaves consistently under identical conditions. It runs N identical requests and analyzes variance across semantic meaning, tool usage, output structure, and length.
 
 ## What is Stability?
 
-LLMs are nondeterministic by nature. Even with `temperature=0`, the same input can produce different outputs. Ruvrics quantifies this instability and identifies its root causes.
+Large Language Models are nondeterministic by nature. Even with temperature set to 0, the same input can produce different outputs. Ruvrics quantifies this instability and identifies its root causes.
 
-**Stability Score**: A weighted average of 4 core metrics:
-- **Semantic Consistency (40%)**: Do outputs mean the same thing?
-- **Tool Consistency (25%)**: Does the model use tools consistently?
-- **Structural Consistency (20%)**: Is the output format stable?
-- **Length Consistency (15%)**: Are responses similarly verbose?
+The stability score is a weighted average of 4 core metrics:
+- Semantic Consistency (40%): Do outputs mean the same thing?
+- Tool Consistency (25%): Does the model use tools consistently?
+- Structural Consistency (20%): Is the output format stable?
+- Length Consistency (15%): Are responses similarly verbose?
 
 ## Risk Classifications
 
-- **SAFE (≥90%)**: System is stable and ready for production
-- **RISKY (70-89%)**: Review recommended fixes before shipping
-- **DO_NOT_SHIP (<70%)**: Critical instability issues detected
+- SAFE (score >= 90%): System is stable and ready for production
+- RISKY (70-89%): Review recommended fixes before shipping
+- DO_NOT_SHIP (< 70%): Critical instability issues detected
 
 ## Installation
 
@@ -28,17 +28,25 @@ LLMs are nondeterministic by nature. Even with `temperature=0`, the same input c
 - OpenAI API key (for GPT models)
 - Anthropic API key (for Claude models)
 
-### Install Dependencies
+### Install from PyPI
 
 ```bash
+pip install ruvrics
+```
+
+### Install from Source
+
+```bash
+git clone https://github.com/YOUR_USERNAME/ruvrics.git
+cd ruvrics
 pip install -e .
 ```
 
 ### Configure API Keys
 
-Create a `.env` file in the project root:
+Create a .env file in your project directory:
 
-```bash
+```
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 ```
@@ -56,8 +64,8 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 
 ```bash
 ruvrics stability \
-  --input examples/query_simple.json \
-  --model gpt-4-turbo \
+  --input query.json \
+  --model gpt-4o-mini \
   --runs 20
 ```
 
@@ -65,9 +73,20 @@ ruvrics stability \
 
 ```bash
 ruvrics stability \
-  --prompt examples/system_prompt.txt \
-  --input examples/query.json \
+  --prompt system_prompt.txt \
+  --input query.json \
   --model gpt-4-turbo \
+  --runs 20
+```
+
+### With Tools (Modular Approach)
+
+```bash
+ruvrics stability \
+  --prompt system_prompt.txt \
+  --input query.json \
+  --tools tools.json \
+  --model gpt-4o \
   --runs 20
 ```
 
@@ -75,9 +94,9 @@ ruvrics stability \
 
 ```bash
 ruvrics stability \
-  --input examples/query.json \
+  --input query.json \
   --model claude-sonnet-4 \
-  --runs 30 \
+  --runs 20 \
   --output results.json
 ```
 
@@ -85,7 +104,7 @@ ruvrics stability \
 
 Ruvrics supports three input formats:
 
-### Format A: Simple (system_prompt + user_input)
+### Simple Format
 
 ```json
 {
@@ -94,7 +113,7 @@ Ruvrics supports three input formats:
 }
 ```
 
-### Format B: Messages
+### Messages Format
 
 ```json
 {
@@ -105,36 +124,42 @@ Ruvrics supports three input formats:
 }
 ```
 
-### Format C: Tool-enabled
+### With Tools (Modular)
 
+**query.json:**
 ```json
 {
-  "user_input": "Find flights to Tokyo",
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "search_flights",
-        "description": "Search for flights",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "origin": {"type": "string"},
-            "destination": {"type": "string"}
-          }
-        }
-      }
-    }
-  ]
+  "user_input": "Find flights to Tokyo"
 }
 ```
 
-You can also combine system prompt from a file with tools in JSON:
+**tools.json:**
+```json
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_flights",
+      "description": "Search for flights",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "origin": {"type": "string"},
+          "destination": {"type": "string"}
+        }
+      }
+    }
+  }
+]
+```
+
+You can also combine formats by using separate files:
 
 ```bash
 ruvrics stability \
   --prompt system_prompt.txt \
-  --input query_with_tools.json \
+  --input query.json \
+  --tools tools.json \
   --model gpt-4o \
   --runs 20
 ```
@@ -142,66 +167,70 @@ ruvrics stability \
 ## Supported Models
 
 ### OpenAI
-- `gpt-4-turbo`
-- `gpt-4o`
-- `gpt-4o-mini`
-- `gpt-3.5-turbo`
+- gpt-4-turbo
+- gpt-4
+- gpt-4o
+- gpt-4o-mini
+- gpt-3.5-turbo
 
 ### Anthropic
-- `claude-sonnet-4`
-- `claude-opus-4`
-- `claude-haiku-4`
+- claude-opus-4
+- claude-sonnet-4
+- claude-sonnet-3.5
+- claude-haiku-4
 
 ## Understanding the Report
 
 ### Component Breakdown
 
-Each metric gets a score (0-100%) and a variance classification:
+Each metric receives a score (0-100%) and a variance classification:
 
-- **LOW variance**: Metric is stable (green)
-- **MEDIUM variance**: Some inconsistency (yellow)
-- **HIGH variance**: Significant instability (red)
+- LOW variance: Metric is stable
+- MEDIUM variance: Some inconsistency detected
+- HIGH variance: Significant instability
 
 ### Instability Fingerprint
 
 When issues are detected, Ruvrics identifies the root cause:
 
-1. **NONDETERMINISTIC_TOOL_ROUTING**: Model inconsistently decides whether to use tools
-2. **TOOL_CONFUSION**: Tool usage affects output unpredictably
-3. **UNCONSTRAINED_ASSERTIONS**: Model makes risky claims inconsistently
-4. **UNDERSPECIFIED_PROMPT**: Prompt allows too much interpretation freedom
-5. **FORMAT_INCONSISTENCY**: Output format not reliably enforced
-6. **VERBOSITY_DRIFT**: Response length varies significantly
-7. **GENERAL_INSTABILITY**: Multiple sources of variation
+1. NONDETERMINISTIC_TOOL_ROUTING: Model inconsistently decides whether to use tools
+2. TOOL_CONFUSION: Tool usage affects output unpredictably
+3. UNCONSTRAINED_ASSERTIONS: Model makes risky claims inconsistently
+4. UNDERSPECIFIED_PROMPT: Prompt allows too much interpretation freedom
+5. FORMAT_INCONSISTENCY: Output format not reliably enforced
+6. VERBOSITY_DRIFT: Response length varies significantly
+7. GENERAL_INSTABILITY: Multiple sources of variation
 
 ### Recommendations
 
 Based on root causes, Ruvrics provides actionable fixes:
 
-- **Prompt improvements**: Add constraints, examples, or negative instructions
-- **Code changes**: Move decision logic outside the LLM
-- **Config adjustments**: Lower temperature, enforce schemas
+- Prompt improvements: Add constraints, examples, or negative instructions
+- Code changes: Move decision logic outside the LLM
+- Config adjustments: Lower temperature, enforce schemas
 
 ## Exit Codes
 
-- `0`: SAFE - System is stable
-- `1`: RISKY - Review recommended
-- `2`: DO_NOT_SHIP - Critical issues
-- `3`: Configuration error
-- `4`: Insufficient successful runs
-- `5`: Embedding error
-- `6`: Invalid JSON input
-- `7`: General Ruvrics error
-- `8`: Unexpected error
+- 0: SAFE - System is stable
+- 1: RISKY - Review recommended
+- 2: DO_NOT_SHIP - Critical issues
+- 3: Configuration error
+- 4: Insufficient successful runs
+- 5: Embedding error
+- 6: Invalid JSON input
+- 7: General Ruvrics error
+- 8: Unexpected error
 
 ## Examples
 
-See the `examples/` directory for sample input files:
+See the examples/ directory for sample input files:
 
-- `query_simple.json`: Basic query without tools
-- `query.json`: Query with tool definitions
-- `query_messages.json`: Using messages format
-- `system_prompt.txt`: Sample system prompt
+- query_simple.json: Basic query without tools
+- query_with_tools.json: Simple query for use with separate tools file
+- tools.json: Reusable tool definitions
+- query.json: Query with embedded tools (legacy format)
+- query_messages.json: Messages format example
+- system_prompt.txt: Sample system prompt
 
 ## Development
 
@@ -259,6 +288,7 @@ ruvrics/
 │       └── errors.py        # Custom exceptions
 ├── tests/                   # Test suite
 ├── examples/                # Example input files
+├── docs/                    # Documentation
 ├── pyproject.toml          # Project configuration
 └── README.md               # This file
 ```
@@ -267,11 +297,11 @@ ruvrics/
 
 ### Semantic Consistency
 
-Uses sentence-transformers (all-MiniLM-L6-v2) to compute embeddings and measures cosine similarity to the centroid. This is O(N) instead of O(N²) pairwise comparison.
+Uses sentence-transformers (all-MiniLM-L6-v2) to compute embeddings and measures cosine similarity to the centroid. This approach is O(N) instead of O(N²) pairwise comparison.
 
 ### Tool Consistency
 
-Normalizes tool call patterns (order-independent frozensets) and measures how often the most common pattern appears.
+Normalizes tool call patterns using order-independent frozensets and measures how often the most common pattern appears.
 
 ### Structural Consistency
 
@@ -279,7 +309,7 @@ Detects output structure (JSON, Markdown, Text, etc.) and measures how often the
 
 ### Length Consistency
 
-Uses Coefficient of Variation (CV = std/mean) to measure length variance. Lower CV = more consistent.
+Uses Coefficient of Variation (CV = std/mean) to measure length variance. Lower CV indicates more consistent length.
 
 ### Claim Detection
 
@@ -291,53 +321,53 @@ Pattern-based detection of risky claims:
 
 ## Thresholds
 
-All thresholds are configurable in `ruvrics/config.py`:
+All thresholds are configurable in ruvrics/config.py:
 
 **Risk Classification:**
-- SAFE: score ≥ 90%
-- RISKY: 70% ≤ score < 90%
+- SAFE: score >= 90%
+- RISKY: 70% <= score < 90%
 - DO_NOT_SHIP: score < 70%
 
 **Semantic Variance:**
-- LOW: similarity ≥ 85%
-- MEDIUM: 70% ≤ similarity < 85%
+- LOW: similarity >= 85%
+- MEDIUM: 70% <= similarity < 85%
 - HIGH: similarity < 70%
 
 **Tool Variance:**
-- LOW: consistency ≥ 95%
-- MEDIUM: 80% ≤ consistency < 95%
+- LOW: consistency >= 95%
+- MEDIUM: 80% <= consistency < 95%
 - HIGH: consistency < 80%
 
 **Structural Variance:**
-- LOW: consistency ≥ 95%
-- MEDIUM: 85% ≤ consistency < 95%
+- LOW: consistency >= 95%
+- MEDIUM: 85% <= consistency < 95%
 - HIGH: consistency < 85%
 
 **Length Variance (CV):**
 - LOW: CV < 0.15
-- MEDIUM: 0.15 ≤ CV < 0.30
-- HIGH: CV ≥ 0.30
+- MEDIUM: 0.15 <= CV < 0.30
+- HIGH: CV >= 0.30
 
-## Specification
+## Documentation
 
-This implementation follows the exact specification in:
-- `docs/AI_STABILITY_FINAL_SPEC.md` - Complete technical specification
-- `docs/IMPLEMENTATION_INSTRUCTIONS.md` - Implementation guide
-- `docs/CONFIGURATION_GUIDE.md` - Configuration patterns
+For detailed technical documentation, see:
+- docs/AI_STABILITY_FINAL_SPEC.md - Complete technical specification
+- docs/IMPLEMENTATION_INSTRUCTIONS.md - Implementation guide
+- docs/CONFIGURATION_GUIDE.md - Configuration patterns
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome. Please:
 
 1. Fork the repository
 2. Create a feature branch
 3. Add tests for new functionality
-4. Ensure all tests pass: `pytest tests/ -v`
-5. Format code: `black ruvrics/ tests/`
+4. Ensure all tests pass: pytest tests/ -v
+5. Format code: black ruvrics/ tests/
 6. Submit a pull request
 
 ## Support

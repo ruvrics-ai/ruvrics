@@ -8,9 +8,11 @@ From spec Section 3 - Stability Score Formula.
 import time
 from datetime import datetime
 
+import numpy as np
+
 from ruvrics.config import Config, get_config
 from ruvrics.core.models import RunResult, StabilityResult, InputConfig
-from ruvrics.metrics.semantic import calculate_semantic_consistency
+from ruvrics.metrics.semantic import calculate_semantic_consistency, get_embeddings
 from ruvrics.metrics.tool import calculate_tool_consistency
 from ruvrics.metrics.structural import calculate_structural_consistency
 from ruvrics.metrics.length import calculate_length_consistency
@@ -23,7 +25,7 @@ def calculate_stability(
     model: str,
     duration_seconds: float,
     config: Config | None = None,
-) -> StabilityResult:
+) -> tuple[StabilityResult, "np.ndarray"]:
     """
     Calculate overall stability score from all runs.
 
@@ -41,7 +43,7 @@ def calculate_stability(
         config: Optional configuration
 
     Returns:
-        StabilityResult with complete analysis
+        Tuple of (StabilityResult with complete analysis, embeddings array for clustering)
     """
     cfg = config or get_config()
 
@@ -53,6 +55,9 @@ def calculate_stability(
 
     # Calculate all metrics
     outputs = [r.output_text for r in successful_runs]
+
+    # Get embeddings first (reuse for clustering in report generation)
+    embeddings = get_embeddings(outputs)
 
     # Semantic consistency (40% weight)
     semantic_result = calculate_semantic_consistency(outputs, config=cfg)
@@ -115,7 +120,7 @@ def calculate_stability(
 
     recommendations = generate_recommendations(root_causes, config=cfg)
 
-    return StabilityResult(
+    result = StabilityResult(
         # Overall metrics
         stability_score=stability_score,
         risk_classification=risk_classification,
@@ -141,3 +146,5 @@ def calculate_stability(
         timestamp=datetime.now(),
         runs=runs,
     )
+
+    return result, embeddings

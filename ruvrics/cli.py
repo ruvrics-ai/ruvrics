@@ -17,12 +17,14 @@ from ruvrics.core.executor import StabilityExecutor
 from ruvrics.core.models import InputConfig
 from ruvrics.analysis.scorer import calculate_stability
 from ruvrics.output.formatter import print_stability_report
+from ruvrics.output.markdown_report import generate_markdown_report
 from ruvrics.utils.errors import (
     RuvricsError,
     ConfigurationError,
     InsufficientDataError,
     EmbeddingError,
 )
+from ruvrics.utils.telemetry import track_stability_run, track_error
 
 
 console = Console()
@@ -61,23 +63,36 @@ def main():
     "--runs",
     type=int,
     default=20,
-    help="Number of identical runs (10-50, default: 20)",
+    help="Number of identical runs (minimum: 15, maximum: 50, default: 20)",
+)
+@click.option(
+    "--tools",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Path to tools/functions JSON file (optional)",
 )
 @click.option(
     "--output",
     type=click.Path(dir_okay=False),
     help="Save results to JSON file",
 )
-def stability(prompt, input, model, runs, output):
+def stability(prompt, input, model, runs, tools, output):
     """
     Run stability analysis on an LLM system.
 
     This command executes N identical requests to test consistency.
 
-    Example:
+    Examples:
+        # Simple query without tools
+        ruvrics stability \\
+            --input query.json \\
+            --model gpt-4-turbo \\
+            --runs 20
+
+        # With system prompt and tools
         ruvrics stability \\
             --prompt system_prompt.txt \\
             --input query.json \\
+            --tools tools.json \\
             --model gpt-4-turbo \\
             --runs 20
     """
@@ -89,6 +104,13 @@ def stability(prompt, input, model, runs, output):
         # Load configuration
         config = get_config()
         model_config = get_model_config(model)
+
+        # Validate runs against minimum required for analysis
+        if runs < config.min_successful_runs:
+            raise click.BadParameter(
+                f"Runs must be at least {config.min_successful_runs} for reliable analysis. "
+                f"You specified {runs}. Please use --runs {config.min_successful_runs} or higher."
+            )
 
         console.print()
         console.print("🔍 AI Stability Analysis", style="bold cyan")
@@ -108,6 +130,14 @@ def stability(prompt, input, model, runs, output):
             if "system_prompt" not in input_data:
                 input_data["system_prompt"] = prompt_text
 
+        # Load tools file if provided
+        if tools:
+            with open(tools, "r") as f:
+                tools_data = json.load(f)
+            # Add tools to input data
+            if "tools" not in input_data:
+                input_data["tools"] = tools_data
+
         # Create input configuration
         input_config = InputConfig(**input_data)
 
@@ -126,8 +156,8 @@ def stability(prompt, input, model, runs, output):
         )
         console.print()
 
-        # Calculate stability
-        result = calculate_stability(
+        # Calculate stability (returns result + embeddings for clustering)
+        result, embeddings = calculate_stability(
             runs=run_results,
             input_config=input_config,
             model=model,
@@ -135,17 +165,37 @@ def stability(prompt, input, model, runs, output):
             config=config,
         )
 
+        # Track successful run (anonymous telemetry)
+        track_stability_run(
+            model=model,
+            runs=runs,
+            successful_runs=result.successful_runs,
+            duration_seconds=duration,
+            stability_score=result.stability_score,
+            risk_classification=result.risk_classification,
+            has_tools=input_config.tools is not None,
+        )
+
         # Display report
         print_stability_report(result)
 
-        # Save to file if requested
+        # Generate and save Markdown explainability report
+        markdown_report = generate_markdown_report(result, run_results, embeddings)
+        markdown_path = Path("ruvrics_report.md")
+        markdown_path.write_text(markdown_report)
+        console.print()
+        console.print(f"📄 Explainability report saved to: {markdown_path}", style="dim")
+
+        # Save JSON to file if requested
         if output:
             output_path = Path(output)
             result.save_to_file(str(output_path))
-            console.print()
-            console.print(
-                f"📁 Results saved to: {output_path}", style="dim"
-            )
+            console.print(f"📁 JSON results saved to: {output_path}", style="dim")
+        else:
+            # Always save JSON alongside markdown
+            json_path = Path("ruvrics_report.json")
+            result.save_to_file(str(json_path))
+            console.print(f"📁 JSON results saved to: {json_path}", style="dim")
 
         # Exit with appropriate code based on risk
         if result.risk_classification == "SAFE":
@@ -156,6 +206,7 @@ def stability(prompt, input, model, runs, output):
             sys.exit(2)
 
     except ConfigurationError as e:
+        track_error("ConfigurationError", "stability")
         console.print()
         console.print(f"❌ Configuration Error:", style="bold red")
         console.print(f"   {e}")
@@ -164,6 +215,7 @@ def stability(prompt, input, model, runs, output):
         sys.exit(3)
 
     except InsufficientDataError as e:
+        track_error("InsufficientDataError", "stability")
         console.print()
         console.print(f"❌ Insufficient Data:", style="bold red")
         console.print(f"   {e}")
@@ -171,6 +223,7 @@ def stability(prompt, input, model, runs, output):
         sys.exit(4)
 
     except EmbeddingError as e:
+        track_error("EmbeddingError", "stability")
         console.print()
         console.print(f"❌ Embedding Error:", style="bold red")
         console.print(f"   {e}")
@@ -178,6 +231,7 @@ def stability(prompt, input, model, runs, output):
         sys.exit(5)
 
     except json.JSONDecodeError as e:
+        track_error("JSONDecodeError", "stability")
         console.print()
         console.print(f"❌ Invalid JSON:", style="bold red")
         console.print(f"   {input}: {e}")
@@ -185,6 +239,7 @@ def stability(prompt, input, model, runs, output):
         sys.exit(6)
 
     except RuvricsError as e:
+        track_error("RuvricsError", "stability")
         console.print()
         console.print(f"❌ Error:", style="bold red")
         console.print(f"   {e}")
@@ -192,6 +247,7 @@ def stability(prompt, input, model, runs, output):
         sys.exit(7)
 
     except Exception as e:
+        track_error("UnexpectedError", "stability")
         console.print()
         console.print(f"❌ Unexpected Error:", style="bold red")
         console.print(f"   {e}")

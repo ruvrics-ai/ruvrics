@@ -5,6 +5,8 @@ Creates beautiful, readable reports using Rich.
 From spec Section 7 - Output Contract (CLI).
 """
 
+import io
+
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -26,7 +28,9 @@ def format_stability_report(result: StabilityResult) -> str:
     Returns:
         Formatted string ready for terminal display
     """
-    console = Console(record=True)
+    # Create console that records but doesn't print to stdout
+    string_buffer = io.StringIO()
+    console = Console(file=string_buffer, record=True, force_terminal=True)
 
     # Header
     console.print()
