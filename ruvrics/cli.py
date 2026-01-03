@@ -179,9 +179,20 @@ def stability(prompt, input, model, runs, tools, output):
         # Display report
         print_stability_report(result)
 
+        # Create reports directory if it doesn't exist
+        reports_dir = Path("reports")
+        reports_dir.mkdir(exist_ok=True)
+
+        # Generate timestamped filename
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        base_filename = f"ruvrics_report_{timestamp}"
+
+        # Extract user query for report header
+        user_query = input_config.user_input if hasattr(input_config, 'user_input') else None
+
         # Generate and save Markdown explainability report
-        markdown_report = generate_markdown_report(result, run_results, embeddings)
-        markdown_path = Path("ruvrics_report.md")
+        markdown_report = generate_markdown_report(result, run_results, embeddings, user_query)
+        markdown_path = reports_dir / f"{base_filename}.md"
         markdown_path.write_text(markdown_report)
         console.print()
         console.print(f"📄 Explainability report saved to: {markdown_path}", style="dim")
@@ -193,7 +204,7 @@ def stability(prompt, input, model, runs, tools, output):
             console.print(f"📁 JSON results saved to: {output_path}", style="dim")
         else:
             # Always save JSON alongside markdown
-            json_path = Path("ruvrics_report.json")
+            json_path = reports_dir / f"{base_filename}.json"
             result.save_to_file(str(json_path))
             console.print(f"📁 JSON results saved to: {json_path}", style="dim")
 

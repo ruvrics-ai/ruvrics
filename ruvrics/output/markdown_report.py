@@ -196,7 +196,7 @@ def generate_guidance(
     return "\n".join(guidance) if guidance else "System is stable. No immediate action needed."
 
 
-def generate_markdown_report(result: StabilityResult, runs: list[RunResult], embeddings: np.ndarray) -> str:
+def generate_markdown_report(result: StabilityResult, runs: list[RunResult], embeddings: np.ndarray, input_query: str = None) -> str:
     """
     Generate complete Markdown explainability report.
 
@@ -204,6 +204,7 @@ def generate_markdown_report(result: StabilityResult, runs: list[RunResult], emb
         result: Stability analysis result
         runs: All run results
         embeddings: Semantic embeddings for clustering
+        input_query: Optional user input query to display in report
 
     Returns:
         Markdown formatted report
@@ -225,6 +226,11 @@ def generate_markdown_report(result: StabilityResult, runs: list[RunResult], emb
 
     # Header
     report.append("# Ruvrics Stability Report\n")
+
+    # Test information
+    if input_query:
+        report.append(f"**Test Query:** {input_query}\n")
+
     report.append(f"**Model:** {result.model}")
     report.append(f"**Timestamp:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     report.append(f"**Runs:** {result.successful_runs}/{result.total_runs} successful")
@@ -425,6 +431,6 @@ def generate_markdown_report(result: StabilityResult, runs: list[RunResult], emb
 
     report.append("---\n")
     report.append("## Raw Data\n")
-    report.append("See `ruvrics_report.json` for machine-readable format with all outputs.\n")
+    report.append("See the corresponding JSON file in `reports/` for machine-readable format with all outputs.\n")
 
     return "\n".join(report)
