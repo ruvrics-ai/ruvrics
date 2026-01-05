@@ -10,7 +10,7 @@ Your Ruvrics package is now ready for PyPI distribution!
 - Professional README.md suitable for PyPI
 
 ### 2. Required Files Created
-- **LICENSE**: MIT License
+- **LICENSE**: Apache License 2.0
 - **MANIFEST.in**: Controls what gets included in PyPI package
 - **CHANGELOG.md**: Version history tracking
 - **PYPI_DEPLOYMENT.md**: Step-by-step deployment guide
@@ -34,7 +34,7 @@ Your Ruvrics package is now ready for PyPI distribution!
 ```
 ruvrics/
 ├── README.md                      # User documentation (PyPI)
-├── LICENSE                        # MIT License (PyPI)
+├── LICENSE                        # Apache License 2.0 (PyPI)
 ├── CHANGELOG.md                   # Version history (PyPI)
 ├── MANIFEST.in                    # Package control (PyPI)
 ├── PYPI_DEPLOYMENT.md            # Deployment guide
