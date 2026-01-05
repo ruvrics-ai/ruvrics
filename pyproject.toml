@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "AI Behavioral Stability & Reliability Engine - Measure LLM consistency and reliability"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 authors = [
     {name = "Ruvrics Team"}
 ]
@@ -12,7 +12,7 @@ keywords = ["ai", "llm", "stability", "testing", "reliability", "openai", "anthr
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -45,10 +45,10 @@ dev = [
 ruvrics = "ruvrics.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ruvrics"
-Documentation = "https://github.com/yourusername/ruvrics#readme"
-Repository = "https://github.com/yourusername/ruvrics"
-Issues = "https://github.com/yourusername/ruvrics/issues"
+Homepage = "https://github.com/ruvrics-ai/ruvrics"
+Documentation = "https://github.com/ruvrics-ai/ruvrics#readme"
+Repository = "https://github.com/ruvrics-ai/ruvrics"
+Issues = "https://github.com/ruvrics-ai/ruvrics/issues"
 
 [build-system]
 requires = ["setuptools>=68.0.0", "wheel"]
