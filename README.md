@@ -28,16 +28,32 @@ The stability score is a weighted average of 4 core metrics:
 - OpenAI API key (for GPT models)
 - Anthropic API key (for Claude models)
 
-### Install from PyPI
+### Quick Install
 
 ```bash
 pip install ruvrics
 ```
 
+That's it! Ruvrics works out of the box on both CPU and GPU systems.
+
+### Lightweight Installation (Optional)
+
+By default, PyTorch includes CUDA support (~4GB download). If you're on CPU-only or want a faster, smaller install (~200MB):
+
+```bash
+# Install CPU-only PyTorch first
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Then install ruvrics (will detect existing torch)
+pip install ruvrics
+```
+
+This installs the same functionality but with a much smaller download size.
+
 ### Install from Source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ruvrics.git
+git clone https://github.com/ruvrics-ai/ruvrics.git
 cd ruvrics
 pip install -e .
 ```
