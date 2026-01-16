@@ -10,6 +10,7 @@ from ruvrics.config import (
     reset_config,
     SUPPORTED_MODELS,
 )
+from ruvrics.utils.errors import APIKeyMissingError, ModelNotSupportedError
 
 
 class TestModelConfig:
@@ -69,14 +70,16 @@ class TestConfig:
     def test_get_api_key_openai_missing(self):
         """Test error when OpenAI API key missing."""
         config = Config(openai_api_key=None)
-        with pytest.raises(ValueError, match="OpenAI API key not found"):
+        with pytest.raises(APIKeyMissingError) as exc_info:
             config.get_api_key("openai")
+        assert exc_info.value.provider == "openai"
 
     def test_get_api_key_anthropic_missing(self):
         """Test error when Anthropic API key missing."""
         config = Config(anthropic_api_key=None)
-        with pytest.raises(ValueError, match="Anthropic API key not found"):
+        with pytest.raises(APIKeyMissingError) as exc_info:
             config.get_api_key("anthropic")
+        assert exc_info.value.provider == "anthropic"
 
     def test_get_api_key_invalid_provider(self):
         """Test error for invalid provider."""
@@ -121,8 +124,10 @@ class TestModelRegistry:
 
     def test_get_model_config_not_found(self):
         """Test error when model not supported."""
-        with pytest.raises(ValueError, match="not supported"):
+        with pytest.raises(ModelNotSupportedError) as exc_info:
             get_model_config("unsupported-model-xyz")
+        assert exc_info.value.model == "unsupported-model-xyz"
+        assert len(exc_info.value.supported_models) > 0
 
 
 class TestConfigSingleton:

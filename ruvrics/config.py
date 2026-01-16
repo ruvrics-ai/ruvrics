@@ -15,6 +15,8 @@ from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, field_validator
 
+from ruvrics.utils.errors import APIKeyMissingError, ModelNotSupportedError
+
 # Load environment variables from .env file if present
 load_dotenv()
 
@@ -128,21 +130,15 @@ class Config(BaseModel):
             API key string
 
         Raises:
-            ValueError: If API key not found for the provider
+            APIKeyMissingError: If API key not found for the provider
         """
         if provider == "openai":
             if not self.openai_api_key:
-                raise ValueError(
-                    "OpenAI API key not found. "
-                    "Set OPENAI_API_KEY environment variable or in .env file."
-                )
+                raise APIKeyMissingError("openai")
             return self.openai_api_key
         elif provider == "anthropic":
             if not self.anthropic_api_key:
-                raise ValueError(
-                    "Anthropic API key not found. "
-                    "Set ANTHROPIC_API_KEY environment variable or in .env file."
-                )
+                raise APIKeyMissingError("anthropic")
             return self.anthropic_api_key
         else:
             raise ValueError(f"Unknown provider: {provider}. Must be 'openai' or 'anthropic'.")
@@ -191,17 +187,13 @@ def get_model_config(model_identifier: str) -> ModelConfig:
         ModelConfig with provider and settings
 
     Raises:
-        ValueError: If model not supported
+        ModelNotSupportedError: If model not supported
     """
     if model_identifier in SUPPORTED_MODELS:
         return SUPPORTED_MODELS[model_identifier]
 
     # Provide helpful error message with supported models
-    supported_list = ", ".join(SUPPORTED_MODELS.keys())
-    raise ValueError(
-        f"Model '{model_identifier}' not supported. "
-        f"Supported models: {supported_list}"
-    )
+    raise ModelNotSupportedError(model_identifier, list(SUPPORTED_MODELS.keys()))
 
 
 # Global config instance (singleton pattern)

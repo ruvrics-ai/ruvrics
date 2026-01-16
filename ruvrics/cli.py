@@ -30,13 +30,46 @@ from ruvrics.comparison import (
 from ruvrics.utils.errors import (
     RuvricsError,
     ConfigurationError,
+    APIKeyMissingError,
+    InvalidAPIKeyError,
     InsufficientDataError,
     EmbeddingError,
+    JSONParseError,
+    InvalidInputError,
+    ModelNotSupportedError,
+    ToolMockRequiredError,
 )
 from ruvrics.utils.telemetry import track_stability_run, track_error
 
 
 console = Console()
+
+
+def print_error(title: str, error: Exception, show_full_message: bool = True):
+    """
+    Print a formatted error message to console.
+
+    Args:
+        title: Short error title (e.g., "API Key Missing")
+        error: The exception to display
+        show_full_message: If True, shows the full multi-line error message
+    """
+    console.print()
+    console.print("=" * 70, style="red")
+    console.print(f"❌ {title}", style="bold red")
+    console.print("=" * 70, style="red")
+    console.print()
+
+    if show_full_message:
+        # Print the full error message with proper indentation
+        error_lines = str(error).split("\n")
+        for line in error_lines:
+            console.print(f"  {line}")
+    else:
+        console.print(f"  {error}")
+
+    console.print()
+    console.print("=" * 70, style="red")
 
 
 def print_comparison_report(comparison: ComparisonResult):
@@ -407,54 +440,90 @@ def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, comp
 
         sys.exit(exit_code)
 
+    except APIKeyMissingError as e:
+        track_error("APIKeyMissingError", "stability")
+        print_error("API Key Not Found", e)
+        sys.exit(3)
+
+    except InvalidAPIKeyError as e:
+        track_error("InvalidAPIKeyError", "stability")
+        print_error("Invalid API Key", e)
+        sys.exit(3)
+
+    except ModelNotSupportedError as e:
+        track_error("ModelNotSupportedError", "stability")
+        print_error("Model Not Supported", e)
+        sys.exit(3)
+
+    except ToolMockRequiredError as e:
+        track_error("ToolMockRequiredError", "stability")
+        print_error("Tool Mocks Required", e)
+        sys.exit(3)
+
     except ConfigurationError as e:
         track_error("ConfigurationError", "stability")
-        console.print()
-        console.print(f"❌ Configuration Error:", style="bold red")
-        console.print(f"   {e}")
-        console.print()
-        console.print("💡 Tip: Make sure API keys are set in environment or .env file")
+        print_error("Configuration Error", e)
         sys.exit(3)
 
     except InsufficientDataError as e:
         track_error("InsufficientDataError", "stability")
-        console.print()
-        console.print(f"❌ Insufficient Data:", style="bold red")
-        console.print(f"   {e}")
-        console.print()
+        print_error("Insufficient Data", e)
         sys.exit(4)
 
     except EmbeddingError as e:
         track_error("EmbeddingError", "stability")
-        console.print()
-        console.print(f"❌ Embedding Error:", style="bold red")
-        console.print(f"   {e}")
-        console.print()
+        print_error("Embedding Error", e)
         sys.exit(5)
 
     except json.JSONDecodeError as e:
         track_error("JSONDecodeError", "stability")
+        # Convert to our custom error for better messaging
+        json_error = JSONParseError(
+            file_path=input,
+            error_detail=str(e.msg),
+            line=e.lineno,
+            column=e.colno
+        )
+        print_error("JSON Parse Error", json_error)
+        sys.exit(6)
+
+    except FileNotFoundError as e:
+        track_error("FileNotFoundError", "stability")
         console.print()
-        console.print(f"❌ Invalid JSON:", style="bold red")
-        console.print(f"   {input}: {e}")
+        console.print("=" * 70, style="red")
+        console.print("❌ File Not Found", style="bold red")
+        console.print("=" * 70, style="red")
         console.print()
+        console.print(f"  Could not find file: {e.filename}")
+        console.print()
+        console.print("  Please check:")
+        console.print("    - The file path is correct")
+        console.print("    - The file exists in the specified location")
+        console.print("    - You have read permissions for the file")
+        console.print()
+        console.print("=" * 70, style="red")
         sys.exit(6)
 
     except RuvricsError as e:
         track_error("RuvricsError", "stability")
-        console.print()
-        console.print(f"❌ Error:", style="bold red")
-        console.print(f"   {e}")
-        console.print()
+        print_error("Error", e)
         sys.exit(7)
 
     except Exception as e:
         track_error("UnexpectedError", "stability")
         console.print()
-        console.print(f"❌ Unexpected Error:", style="bold red")
-        console.print(f"   {e}")
+        console.print("=" * 70, style="red")
+        console.print("❌ Unexpected Error", style="bold red")
+        console.print("=" * 70, style="red")
         console.print()
-        console.print("Please report this issue at: https://github.com/ruvrics-ai/ruvrics/issues")
+        console.print(f"  {type(e).__name__}: {e}")
+        console.print()
+        console.print("  This might be a bug. Please report it at:")
+        console.print("    https://github.com/ruvrics-ai/ruvrics/issues")
+        console.print()
+        console.print("  Include the full error message and steps to reproduce.")
+        console.print()
+        console.print("=" * 70, style="red")
         sys.exit(8)
 
 
