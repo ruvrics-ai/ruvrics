@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-01-17
+
+### Added
+- **Baseline comparison** - Save baselines with `--save-baseline` and detect drift with `--compare`
+- **Model comparison** - Compare stability across models with `--compare-model`
+- **Agentic testing mode** - Full tool execution loop with `--tool-mocks`
+- **User-friendly error messages** - Detailed help for API key, JSON, and configuration errors
+- **Edge case test scenarios** - Examples for testing ambiguous tool routing
+
+### Changed
+- Updated Anthropic model names to current API IDs (claude-sonnet-4.5, claude-haiku-4.5, etc.)
+- Simplified exit codes - always exit 0, clear result messages instead
+- Improved CLI output with clear result summary at end
+
+### Fixed
+- Tool call ID handling for multi-tool OpenAI responses
+- Variable naming conflict with save_baseline function
+
 ## [0.1.0] - 2025-01-05
 
 ### Changed
