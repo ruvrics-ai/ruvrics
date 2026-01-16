@@ -1,0 +1,16 @@
+{
+  "web_search": {
+    "results": [
+      {
+        "title": "Paris - Capital of France",
+        "snippet": "Paris is the capital and most populous city of France. It is known for the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and its rich cultural heritage.",
+        "url": "https://example.com/paris"
+      },
+      {
+        "title": "Things Paris is Famous For",
+        "snippet": "Paris is renowned for fashion, art, gastronomy, and architecture. The city attracts over 30 million tourists annually.",
+        "url": "https://example.com/paris-facts"
+      }
+    ]
+  }
+}

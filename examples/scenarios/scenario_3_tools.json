@@ -1,0 +1,40 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_news",
+      "description": "Search for news articles with various filters.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search terms"
+          },
+          "category": {
+            "type": "string",
+            "description": "News category (technology, business, sports, etc.)"
+          },
+          "date_from": {
+            "type": "string",
+            "description": "Start date filter (YYYY-MM-DD)"
+          },
+          "date_to": {
+            "type": "string",
+            "description": "End date filter (YYYY-MM-DD)"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results to return"
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": ["relevance", "date", "popularity"],
+            "description": "How to sort results"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  }
+]

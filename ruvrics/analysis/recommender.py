@@ -71,6 +71,106 @@ RECOMMENDATION_MAP: dict[str, list[dict]] = {
             "example": "# Filter tools based on query intent before calling LLM",
         },
     ],
+    "ARGUMENT_DRIFT": [
+        {
+            "title": "Specify default argument values",
+            "category": "prompt",
+            "priority": 1,
+            "description": (
+                "Explicitly define default values for optional parameters to ensure "
+                "consistent tool arguments across runs."
+            ),
+            "example": (
+                'Add to tool description:\n'
+                '"Default values when not specified:\n'
+                "- limit: 10\n"
+                "- sort_by: 'relevance'\n"
+                "- date_range: 'last_7_days'\n"
+                'Always use these defaults unless user specifies otherwise."'
+            ),
+        },
+        {
+            "title": "Make argument extraction explicit in prompt",
+            "category": "prompt",
+            "priority": 2,
+            "description": (
+                "Guide the model to extract specific values from user input "
+                "for tool arguments."
+            ),
+            "example": (
+                '"For search queries, extract:\n'
+                "- query: exact user search terms\n"
+                "- limit: number mentioned, or default to 5\n"
+                "- filters: any mentioned constraints\n"
+                'If a value is ambiguous, use the default."'
+            ),
+        },
+        {
+            "title": "Normalize arguments programmatically",
+            "category": "code",
+            "priority": 3,
+            "description": (
+                "Intercept tool calls and normalize arguments before execution "
+                "to ensure consistency."
+            ),
+            "example": (
+                "def normalize_args(tool_name, args):\n"
+                "    args.setdefault('limit', 10)\n"
+                "    args['query'] = args['query'].lower().strip()\n"
+                "    return args"
+            ),
+        },
+    ],
+    "CHAIN_VARIANCE": [
+        {
+            "title": "Define explicit tool execution order",
+            "category": "prompt",
+            "priority": 1,
+            "description": (
+                "Specify the exact sequence of tools to call for multi-step workflows. "
+                "Don't let the model decide the order."
+            ),
+            "example": (
+                'Add to system prompt:\n'
+                '"For booking requests, ALWAYS follow this sequence:\n'
+                "1. First search for options (search_flights)\n"
+                "2. Then check availability (check_availability)\n"
+                "3. Finally make the booking (book_flight)\n"
+                'Never skip steps or reorder."'
+            ),
+        },
+        {
+            "title": "Orchestrate tool chains programmatically",
+            "category": "code",
+            "priority": 2,
+            "description": (
+                "Control the tool execution sequence in your code rather than "
+                "letting the LLM decide when to call each tool."
+            ),
+            "example": (
+                "# Instead of one LLM call with all tools:\n"
+                "results = search_flights(query)\n"
+                "availability = check_availability(results.best_option)\n"
+                "booking = book_flight(availability.slot)\n"
+                "# Then use LLM only for formatting final response"
+            ),
+        },
+        {
+            "title": "Use conditional tool availability",
+            "category": "code",
+            "priority": 3,
+            "description": (
+                "Only provide tools that are valid for the current step. "
+                "Remove tools that shouldn't be called yet."
+            ),
+            "example": (
+                "# Step 1: Only search tool available\n"
+                "tools = [search_tool]\n"
+                "# After search: Only book tool available\n"
+                "tools = [book_tool]"
+            ),
+        },
+    ],
     "UNCONSTRAINED_ASSERTIONS": [
         {
             "title": "Add explicit constraint on guarantees",

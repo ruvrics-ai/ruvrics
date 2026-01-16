@@ -13,7 +13,7 @@ import numpy as np
 from ruvrics.config import Config, get_config
 from ruvrics.core.models import RunResult, StabilityResult, InputConfig
 from ruvrics.metrics.semantic import calculate_semantic_consistency, get_embeddings
-from ruvrics.metrics.tool import calculate_tool_consistency
+from ruvrics.metrics.tool import calculate_tool_consistency, calculate_argument_consistency, calculate_tool_chain_consistency
 from ruvrics.metrics.structural import calculate_structural_consistency
 from ruvrics.metrics.length import calculate_length_consistency
 from ruvrics.metrics.claims import analyze_claim_instability
@@ -68,6 +68,14 @@ def calculate_stability(
         successful_runs, tools_available=tools_available, config=cfg
     )
 
+    # Argument consistency (informational - v0.2.2)
+    # This tracks argument drift but does not affect overall score
+    argument_result = calculate_argument_consistency(successful_runs, config=cfg)
+
+    # Tool chain consistency (informational - v0.2.2)
+    # This tracks tool sequence stability for multi-step workflows
+    chain_result = calculate_tool_chain_consistency(successful_runs, config=cfg)
+
     # Structural consistency (20% weight)
     structural_result = calculate_structural_consistency(successful_runs, config=cfg)
 
@@ -106,6 +114,12 @@ def calculate_stability(
         tool_variance=tool_result.variance,
         tool_score=tool_result.score,
         tool_details=tool_result.details,
+        argument_variance=argument_result.variance,
+        argument_score=argument_result.score,
+        argument_details=argument_result.details,
+        chain_variance=chain_result.variance,
+        chain_score=chain_result.score,
+        chain_details=chain_result.details,
         structural_variance=structural_result.variance,
         structural_score=structural_result.score,
         length_variance=length_result.variance,
@@ -129,6 +143,15 @@ def calculate_stability(
         semantic_drift=semantic_result.variance,
         tool_consistency_score=tool_result.score,
         tool_variance=tool_result.variance,
+        # Argument consistency (v0.2.2)
+        argument_consistency_score=argument_result.score,
+        argument_variance=argument_result.variance,
+        argument_details=argument_result.details,
+        # Tool chain consistency (v0.2.2)
+        chain_consistency_score=chain_result.score,
+        chain_variance=chain_result.variance,
+        chain_details=chain_result.details,
+        # Other metrics
         structural_consistency_score=structural_result.score,
         structural_variance=structural_result.variance,
         length_consistency_score=length_result.score,

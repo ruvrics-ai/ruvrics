@@ -1,0 +1,27 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_products",
+      "description": "Search for products with filters. Returns a list of products with specs and prices.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Product category (laptop, phone, camera, etc.)"
+          },
+          "max_price": {
+            "type": "number",
+            "description": "Maximum price in USD"
+          },
+          "use_case": {
+            "type": "string",
+            "description": "Intended use (gaming, video editing, programming, etc.)"
+          }
+        },
+        "required": ["category"]
+      }
+    }
+  }
+]

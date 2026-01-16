@@ -1,0 +1,50 @@
+{
+  "search_restaurants": {
+    "restaurants": [
+      {
+        "id": "bella-italia-123",
+        "name": "Bella Italia",
+        "cuisine": "Italian",
+        "rating": 4.5,
+        "price_range": "$$",
+        "address": "123 Main St, Downtown",
+        "hours": "11:00-22:00",
+        "distance_miles": 0.3
+      },
+      {
+        "id": "trattoria-roma-456",
+        "name": "Trattoria Roma",
+        "cuisine": "Italian",
+        "rating": 4.8,
+        "price_range": "$$$",
+        "address": "456 Oak Ave, Downtown",
+        "hours": "17:00-23:00",
+        "distance_miles": 0.5
+      },
+      {
+        "id": "pasta-house-789",
+        "name": "Pasta House",
+        "cuisine": "Italian",
+        "rating": 4.2,
+        "price_range": "$",
+        "address": "789 Elm St, Downtown",
+        "hours": "10:00-21:00",
+        "distance_miles": 0.4
+      }
+    ],
+    "total_results": 3
+  },
+  "check_availability": {
+    "available": true,
+    "available_times": ["18:30", "19:00", "19:30", "20:00"],
+    "estimated_wait_minutes": 0
+  },
+  "make_reservation": {
+    "confirmation_number": "RES-2024-ABC123",
+    "status": "confirmed",
+    "restaurant": "Bella Italia",
+    "party_size": 4,
+    "date": "2024-01-15",
+    "time": "19:00"
+  }
+}

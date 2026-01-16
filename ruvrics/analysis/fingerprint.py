@@ -15,12 +15,18 @@ def identify_root_causes(
     tool_variance: str,
     tool_score: float,
     tool_details: dict,
-    structural_variance: str,
-    structural_score: float,
-    length_variance: str,
-    length_score: float,
-    claim_variance: str,
-    claim_percentage: float,
+    argument_variance: str = "N/A",
+    argument_score: float = 100.0,
+    argument_details: dict | None = None,
+    chain_variance: str = "N/A",
+    chain_score: float = 100.0,
+    chain_details: dict | None = None,
+    structural_variance: str = "LOW",
+    structural_score: float = 100.0,
+    length_variance: str = "LOW",
+    length_score: float = 100.0,
+    claim_variance: str = "NONE",
+    claim_percentage: float = 0.0,
     config: Config | None = None,
 ) -> list[RootCause]:
     """
@@ -29,6 +35,8 @@ def identify_root_causes(
     From spec Section 4:
     Priority order (most specific → most general):
     1. Tool-use instability (highest priority)
+    1b. Argument drift (v0.2.2 - same tool, different args)
+    1c. Chain variance (v0.2.2 - sequence instability)
     2. Claim instability
     3. Semantic drift
     4. Structural variance
@@ -36,6 +44,12 @@ def identify_root_causes(
 
     Args:
         All variance classifications and scores from metrics
+        argument_variance: Argument consistency variance (v0.2.2)
+        argument_score: Argument consistency score (v0.2.2)
+        argument_details: Per-tool argument analysis (v0.2.2)
+        chain_variance: Tool chain sequence variance (v0.2.2)
+        chain_score: Tool chain consistency score (v0.2.2)
+        chain_details: Sequence analysis (v0.2.2)
         config: Optional configuration
 
     Returns:
@@ -43,6 +57,8 @@ def identify_root_causes(
     """
     cfg = config or get_config()
     root_causes = []
+    argument_details = argument_details or {}
+    chain_details = chain_details or {}
 
     # 1. Check tool-use instability (highest priority)
     if tool_variance == "HIGH":
@@ -68,6 +84,44 @@ def identify_root_causes(
                     details="Both tool usage and output meaning vary",
                 )
             )
+
+    # 1b. Check argument drift (v0.2.2) - same tool, different arguments
+    if argument_variance in ["HIGH", "MEDIUM"] and tool_variance != "HIGH":
+        tools_with_variation = argument_details.get("tools_with_variation", 0)
+        tool_analysis = argument_details.get("tool_argument_analysis", {})
+
+        # Build details about which tools have argument drift
+        drift_details = []
+        for tool_name, analysis in tool_analysis.items():
+            if analysis.get("argument_variations", 1) > 1:
+                variations = analysis.get("argument_variations", 0)
+                drift_details.append(f"{tool_name}: {variations} variations")
+
+        severity = "HIGH" if argument_variance == "HIGH" else "MEDIUM"
+        root_causes.append(
+            RootCause(
+                type="ARGUMENT_DRIFT",
+                severity=severity,
+                description="Same tools called with inconsistent arguments across runs",
+                details=f"{tools_with_variation} tool(s) with argument drift: " + ", ".join(drift_details[:3]),
+            )
+        )
+
+    # 1c. Check tool chain variance (v0.2.2) - sequence instability
+    if chain_variance in ["HIGH", "MEDIUM"] and tool_variance != "HIGH":
+        unique_sequences = chain_details.get("unique_sequences", 0)
+        dominant_seq = chain_details.get("dominant_sequence", "")
+        seq_dist = chain_details.get("sequence_distribution", {})
+
+        severity = "HIGH" if chain_variance == "HIGH" else "MEDIUM"
+        root_causes.append(
+            RootCause(
+                type="CHAIN_VARIANCE",
+                severity=severity,
+                description="Tool execution sequence varies across runs",
+                details=f"{unique_sequences} different sequences. Dominant: {dominant_seq}",
+            )
+        )
 
     # 2. Check claim instability
     if claim_variance == "HIGH":

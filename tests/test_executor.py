@@ -72,16 +72,30 @@ class TestStabilityExecutor:
 
     @patch("ruvrics.core.executor.create_adapter")
     def test_run_with_tools(self, mock_create_adapter):
-        """Test execution with tool calls."""
-        # Mock adapter with tool calls
+        """Test execution with tool calls (requires mocks since v0.2.1)."""
+        # Mock adapter with tool calls then final response
         mock_adapter = Mock()
-        mock_adapter.call.return_value = {
-            "text": "Searching...",
-            "tool_calls": [{"name": "search_flights", "call_sequence": 1}],
-            "tokens": 15,
-            "latency_ms": 600,
-            "model": "gpt-4",
-        }
+
+        # Each run makes 2 calls: initial (tool call) + final (response)
+        # Interleave them: run1-call1, run1-call2, run2-call1, run2-call2...
+        call_sequence = []
+        for i in range(10):
+            call_sequence.append({
+                "text": "",
+                "tool_calls": [{"name": "search_flights", "call_sequence": 1, "tool_call_id": f"call_run{i}"}],
+                "tokens": 15,
+                "latency_ms": 600,
+                "model": "gpt-4",
+            })
+            call_sequence.append({
+                "text": "Found 3 flights",
+                "tool_calls": [],
+                "tokens": 20,
+                "latency_ms": 500,
+                "model": "gpt-4",
+            })
+
+        mock_adapter.call.side_effect = call_sequence
         mock_create_adapter.return_value = mock_adapter
 
         executor = StabilityExecutor(
@@ -95,6 +109,9 @@ class TestStabilityExecutor:
                     "function": {"name": "search_flights", "description": "Search"},
                 }
             ],
+            tool_mock_responses={
+                "search_flights": {"flights": [{"id": 1}, {"id": 2}]}
+            },
         )
 
         results = executor.run(input_config)
@@ -103,6 +120,8 @@ class TestStabilityExecutor:
         assert len(results) == 10
         assert all(len(r.tool_calls) == 1 for r in results)
         assert all(r.tool_calls[0].name == "search_flights" for r in results)
+        # Check final text response
+        assert all(r.output_text == "Found 3 flights" for r in results)
 
     @patch("ruvrics.core.executor.create_adapter")
     def test_run_insufficient_successes(self, mock_create_adapter):

@@ -18,10 +18,36 @@ class ToolCall(BaseModel):
     Attributes:
         name: Tool/function name
         call_sequence: Order in which this call was made (1st, 2nd, etc.)
+        arguments: Optional dict of arguments passed to the tool
+        tool_call_id: API-provided unique ID for this call (used for multi-tool responses)
     """
 
     name: str
     call_sequence: int
+    arguments: Optional[dict[str, Any]] = None
+    tool_call_id: Optional[str] = None  # OpenAI's unique ID (e.g., "call_abc123")
+
+    def to_display_string(self) -> str:
+        """
+        Format tool call for human-readable display.
+
+        Returns:
+            String like "search_flights(origin='SFO', destination='NRT')"
+        """
+        if not self.arguments:
+            return self.name
+
+        # Format arguments, truncating long values
+        args_parts = []
+        for key, value in self.arguments.items():
+            value_repr = repr(value)
+            # Truncate long values to 50 chars
+            if len(value_repr) > 50:
+                value_repr = value_repr[:47] + "..."
+            args_parts.append(f"{key}={value_repr}")
+
+        args_str = ", ".join(args_parts)
+        return f"{self.name}({args_str})"
 
 
 class RunResult(BaseModel):
@@ -34,13 +60,14 @@ class RunResult(BaseModel):
     run_id: int  # 1 to N
     timestamp: datetime  # ISO 8601 format
     output_text: str  # Final text response
-    tool_calls: list[ToolCall]  # List of tool calls made
+    tool_calls: list[ToolCall]  # List of tool calls made (all iterations)
     output_length_tokens: int  # Token count from API
     output_length_chars: int  # Character count
     output_structure: str  # "json", "markdown", "text", etc.
     api_latency_ms: int  # Response time in milliseconds
     model_used: str  # Actual model identifier from API
     error: Optional[str] = None  # Error message if failed
+    tool_iterations: int = 1  # Number of tool loop iterations (v0.2.2)
 
     class Config:
         """Pydantic configuration."""
@@ -71,6 +98,9 @@ class InputConfig(BaseModel):
     messages: Optional[list[dict[str, str]]] = None
     tools: Optional[list[dict[str, Any]]] = None
     tool_choice: str = "auto"
+
+    # Tool execution support (Format C)
+    tool_mock_responses: Optional[dict[str, Any]] = None  # Mock responses for tool execution
 
     # Model parameters (can be overridden)
     temperature: Optional[float] = None
@@ -182,6 +212,16 @@ class StabilityResult(BaseModel):
 
     tool_consistency_score: float
     tool_variance: str  # "LOW", "MEDIUM", "HIGH", "N/A"
+
+    # Argument consistency (v0.2.2) - tracks argument drift
+    argument_consistency_score: float = 100.0
+    argument_variance: str = "N/A"  # "LOW", "MEDIUM", "HIGH", "N/A"
+    argument_details: Optional[dict[str, Any]] = None  # Per-tool argument analysis
+
+    # Tool chain consistency (v0.2.2) - tracks sequence stability for multi-step workflows
+    chain_consistency_score: float = 100.0
+    chain_variance: str = "N/A"  # "LOW", "MEDIUM", "HIGH", "N/A"
+    chain_details: Optional[dict[str, Any]] = None  # Sequence analysis
 
     structural_consistency_score: float
     structural_variance: str  # "LOW", "MEDIUM", "HIGH"

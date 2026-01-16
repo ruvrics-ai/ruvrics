@@ -1,0 +1,12 @@
+{
+  "get_account_balance": {
+    "balance": null,
+    "currency": "USD",
+    "status": "account_not_found"
+  },
+  "get_transactions": {
+    "transactions": [],
+    "total_count": 0,
+    "message": "No transactions found for this account"
+  }
+}

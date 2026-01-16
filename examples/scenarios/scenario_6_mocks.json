@@ -1,0 +1,61 @@
+{
+  "search_flights": {
+    "flights": [
+      {
+        "flight_id": "UA837-20240215",
+        "airline": "United Airlines",
+        "departure": "2024-02-15T10:30:00",
+        "arrival": "2024-02-16T14:45:00",
+        "price": 850,
+        "duration_hours": 11.25,
+        "stops": 0
+      },
+      {
+        "flight_id": "JAL001-20240215",
+        "airline": "Japan Airlines",
+        "departure": "2024-02-15T13:00:00",
+        "arrival": "2024-02-16T17:30:00",
+        "price": 920,
+        "duration_hours": 11.5,
+        "stops": 0
+      },
+      {
+        "flight_id": "AA173-20240215",
+        "airline": "American Airlines",
+        "departure": "2024-02-15T08:00:00",
+        "arrival": "2024-02-16T15:00:00",
+        "price": 780,
+        "duration_hours": 14,
+        "stops": 1
+      }
+    ]
+  },
+  "book_flight": {
+    "confirmation": "FLIGHT-ABC123",
+    "status": "confirmed",
+    "message": "Flight booked successfully"
+  },
+  "search_hotels": {
+    "hotels": [
+      {
+        "hotel_id": "shibuya-stream-001",
+        "name": "Shibuya Stream Excel Hotel",
+        "distance_to_station": "2 min walk",
+        "price_per_night": 180,
+        "rating": 4.5
+      },
+      {
+        "hotel_id": "cerulean-tower-002",
+        "name": "Cerulean Tower Tokyu Hotel",
+        "distance_to_station": "5 min walk",
+        "price_per_night": 250,
+        "rating": 4.8
+      }
+    ]
+  },
+  "book_hotel": {
+    "confirmation": "HOTEL-XYZ789",
+    "status": "confirmed",
+    "message": "Hotel reservation confirmed"
+  }
+}

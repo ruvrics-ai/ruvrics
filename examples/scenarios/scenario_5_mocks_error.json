@@ -1,0 +1,12 @@
+{
+  "get_account_balance": {
+    "error": "SERVICE_UNAVAILABLE",
+    "message": "Banking service is temporarily unavailable. Please try again later.",
+    "retry_after_seconds": 300
+  },
+  "get_transactions": {
+    "error": "SERVICE_UNAVAILABLE",
+    "message": "Banking service is temporarily unavailable. Please try again later.",
+    "retry_after_seconds": 300
+  }
+}

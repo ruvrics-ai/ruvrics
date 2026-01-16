@@ -143,10 +143,22 @@ class OpenAIAdapter(LLMAdapter):
         tool_calls_list = []
         if message.tool_calls:
             for idx, tool_call in enumerate(message.tool_calls, start=1):
+                # Parse arguments from JSON string
+                arguments = None
+                if tool_call.function.arguments:
+                    try:
+                        import json
+                        arguments = json.loads(tool_call.function.arguments)
+                    except json.JSONDecodeError:
+                        # If arguments can't be parsed, store as None
+                        arguments = None
+
                 tool_calls_list.append(
                     {
                         "name": tool_call.function.name,
                         "call_sequence": idx,
+                        "arguments": arguments,
+                        "tool_call_id": tool_call.id,  # Capture OpenAI's unique ID
                     }
                 )
 
@@ -271,10 +283,13 @@ class AnthropicAdapter(LLMAdapter):
             if block.type == "text":
                 text_parts.append(block.text)
             elif block.type == "tool_use":
+                # Anthropic provides arguments as a dict in block.input
                 tool_calls_list.append(
                     {
                         "name": block.name,
                         "call_sequence": tool_call_idx,
+                        "arguments": block.input if hasattr(block, 'input') else None,
+                        "tool_call_id": block.id,  # Capture Anthropic's unique ID
                     }
                 )
                 tool_call_idx += 1

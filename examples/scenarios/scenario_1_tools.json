@@ -1,0 +1,89 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_restaurants",
+      "description": "Search for restaurants by cuisine, location, or other criteria. Returns list of matching restaurants with ratings, hours, and availability.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "cuisine": {
+            "type": "string",
+            "description": "Type of cuisine (e.g., Italian, Mexican, Japanese)"
+          },
+          "location": {
+            "type": "string",
+            "description": "Area or neighborhood to search"
+          },
+          "open_now": {
+            "type": "boolean",
+            "description": "Filter to only restaurants currently open"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "check_availability",
+      "description": "Check if a specific restaurant has availability for a party size at a given time.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "restaurant_id": {
+            "type": "string",
+            "description": "Unique restaurant identifier"
+          },
+          "party_size": {
+            "type": "integer",
+            "description": "Number of guests"
+          },
+          "date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format"
+          },
+          "time": {
+            "type": "string",
+            "description": "Preferred time in HH:MM format"
+          }
+        },
+        "required": ["restaurant_id", "party_size", "time"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "make_reservation",
+      "description": "Create a restaurant reservation.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "restaurant_id": {
+            "type": "string",
+            "description": "Unique restaurant identifier"
+          },
+          "party_size": {
+            "type": "integer",
+            "description": "Number of guests"
+          },
+          "date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format"
+          },
+          "time": {
+            "type": "string",
+            "description": "Time in HH:MM format"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name for the reservation"
+          }
+        },
+        "required": ["restaurant_id", "party_size", "date", "time", "name"]
+      }
+    }
+  }
+]

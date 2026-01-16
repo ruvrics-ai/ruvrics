@@ -1,0 +1,19 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "web_search",
+      "description": "Search the web for current information. Use when you need up-to-date facts or are unsure about something.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  }
+]

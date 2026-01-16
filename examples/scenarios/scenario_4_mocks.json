@@ -1,0 +1,49 @@
+{
+  "search_products": {
+    "products": [
+      {
+        "id": "macbook-pro-14",
+        "name": "MacBook Pro 14-inch M3",
+        "price": 1499,
+        "specs": {
+          "cpu": "Apple M3 Pro",
+          "ram": "18GB unified",
+          "storage": "512GB SSD",
+          "display": "14.2-inch Liquid Retina XDR"
+        },
+        "video_editing_score": 92,
+        "pros": ["Excellent color accuracy", "Great battery life", "Silent operation"],
+        "cons": ["Limited ports", "macOS only", "No user-upgradeable RAM"]
+      },
+      {
+        "id": "dell-xps-15",
+        "name": "Dell XPS 15 (2024)",
+        "price": 1449,
+        "specs": {
+          "cpu": "Intel Core i7-13700H",
+          "ram": "32GB DDR5",
+          "storage": "1TB SSD",
+          "display": "15.6-inch OLED 3.5K"
+        },
+        "video_editing_score": 88,
+        "pros": ["Gorgeous OLED display", "Lots of RAM", "Upgradeable storage"],
+        "cons": ["Fan noise under load", "Shorter battery life", "Runs hot"]
+      },
+      {
+        "id": "asus-proart",
+        "name": "ASUS ProArt Studiobook 16",
+        "price": 1499,
+        "specs": {
+          "cpu": "AMD Ryzen 9 7940HS",
+          "ram": "32GB DDR5",
+          "storage": "1TB SSD",
+          "display": "16-inch 4K OLED HDR"
+        },
+        "video_editing_score": 90,
+        "pros": ["Best display accuracy", "ASUS Dial for creative apps", "SD card slot"],
+        "cons": ["Heavy at 5.2 lbs", "Less common brand for laptops", "Bulky design"]
+      }
+    ],
+    "total_results": 3
+  }
+}

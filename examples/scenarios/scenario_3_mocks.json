@@ -1,0 +1,25 @@
+{
+  "search_news": {
+    "articles": [
+      {
+        "title": "AI Breakthrough: New Language Model Sets Records",
+        "source": "TechCrunch",
+        "date": "2024-01-14",
+        "summary": "Researchers announce significant improvements in AI language understanding capabilities."
+      },
+      {
+        "title": "Apple Announces New Product Line",
+        "source": "The Verge",
+        "date": "2024-01-13",
+        "summary": "Tech giant reveals upcoming hardware and software innovations."
+      },
+      {
+        "title": "Startup Raises $100M for Quantum Computing",
+        "source": "Wired",
+        "date": "2024-01-12",
+        "summary": "Silicon Valley startup secures major funding for quantum research."
+      }
+    ],
+    "total_results": 3
+  }
+}

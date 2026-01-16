@@ -1,0 +1,40 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_account_balance",
+      "description": "Retrieve the current balance of the user's account.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Account identifier"
+          }
+        },
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_transactions",
+      "description": "Get recent transaction history for the account.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Account identifier"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Number of transactions to retrieve"
+          }
+        },
+        "required": []
+      }
+    }
+  }
+]

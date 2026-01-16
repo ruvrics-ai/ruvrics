@@ -47,12 +47,20 @@ class Config(BaseModel):
     min_successful_runs: int = Field(
         default_factory=lambda: int(os.getenv("MIN_SUCCESSFUL_RUNS", "15"))
     )
+    max_successful_runs: int = Field(
+        default_factory=lambda: int(os.getenv("MAX_SUCCESSFUL_RUNS", "50"))
+    )
     max_retries: int = Field(
         default_factory=lambda: int(os.getenv("MAX_RETRIES", "3"))
     )
     retry_backoff_multiplier: float = 2.0
     api_timeout_seconds: float = Field(
         default_factory=lambda: float(os.getenv("API_TIMEOUT", "60.0"))
+    )
+
+    # Multi-turn execution (v0.2.2 - Scenario 6 support)
+    max_tool_iterations: int = Field(
+        default_factory=lambda: int(os.getenv("MAX_TOOL_ITERATIONS", "5"))
     )
 
     # Embedding model (from spec Appendix C)
