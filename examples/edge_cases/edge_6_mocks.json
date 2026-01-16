@@ -1,0 +1,19 @@
+{
+  "search_restaurants": {
+    "restaurants": [{"name": "Pizza Hut", "rating": 4.2}, {"name": "Dominos", "rating": 4.0}]
+  },
+  "get_recipe": {
+    "recipe": "Pizza dough: flour, water, yeast. Top with sauce and cheese. Bake at 450F."
+  },
+  "order_food": {
+    "order_id": "12345",
+    "status": "confirmed",
+    "eta": "30 minutes"
+  },
+  "get_nutrition_info": {
+    "calories": 285,
+    "protein": "12g",
+    "carbs": "36g",
+    "fat": "10g"
+  }
+}

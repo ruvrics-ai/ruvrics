@@ -1,0 +1,13 @@
+{
+  "search_hotels": {
+    "hotels": [
+      {"name": "Hotel Gracery Shinjuku", "price": 150, "rating": 4.5},
+      {"name": "Park Hyatt Tokyo", "price": 450, "rating": 4.8}
+    ]
+  },
+  "get_city_info": {
+    "city": "Tokyo",
+    "attractions": ["Senso-ji Temple", "Shibuya Crossing", "Tokyo Tower"],
+    "best_season": "Spring (March-May) for cherry blossoms"
+  }
+}

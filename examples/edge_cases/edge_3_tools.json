@@ -1,0 +1,33 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_hotels",
+      "description": "Search for hotels in a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {"type": "string"},
+          "check_in": {"type": "string"},
+          "check_out": {"type": "string"},
+          "guests": {"type": "integer"}
+        },
+        "required": ["location"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_city_info",
+      "description": "Get general information about a city including attractions, weather, and tips",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "city": {"type": "string"}
+        },
+        "required": ["city"]
+      }
+    }
+  }
+]

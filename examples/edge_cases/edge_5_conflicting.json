@@ -1,0 +1,4 @@
+{
+  "system_prompt": "You are a helpful assistant. Be concise but also thorough. Give short answers but explain your reasoning in detail.",
+  "user_input": "Explain quantum computing"
+}

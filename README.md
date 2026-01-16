@@ -1,30 +1,35 @@
 # Ruvrics
 
-**AI Behavioral Stability & Consistency Analyzer (Alpha)**
+**Catch behavioral regressions in your LLM systems before users do.**
 
-Ruvrics tells you whether your LLM behaves consistently under real-world uncertainty.
+Ruvrics detects when your AI system's behavior silently changes — whether from prompt edits, tool updates, model upgrades, or configuration drift.
 
 ## The Problem
 
-LLMs are unpredictable. The same prompt can produce different outputs, call different tools, or format responses differently each time. This makes AI systems unreliable in production.
+Modern LLMs are surprisingly consistent in isolation. But LLM **systems** drift over time:
 
-**You need to know:** Will your AI behave the same way for every user?
+- Someone tweaks the prompt "for clarity"
+- A tool schema gets renamed
+- You upgrade from gpt-4o-mini to gpt-4.1
+- RAG chunk ordering changes
+- Retry logic gets added
+
+No crash. No exception. No obvious error.
+Just **different decisions** — and users notice before you do.
 
 ## The Solution
 
-Ruvrics runs your prompt N times (default: 20) and measures consistency across 4 dimensions:
+Ruvrics runs your prompt N times and measures behavioral consistency. More importantly, it lets you **save baselines** and **detect drift** over time:
 
-| Metric | What It Measures |
-|--------|------------------|
-| **Semantic** (40%) | Do outputs mean the same thing? |
-| **Tool Usage** (25%) | Does the AI use tools consistently? |
-| **Structure** (20%) | Is the output format stable? |
-| **Length** (15%) | Are responses similarly verbose? |
+```bash
+# Day 1: Establish baseline
+ruvrics stability --input query.json --model gpt-4o-mini --save-baseline v1.0
 
-You get a **stability score** (0-100%) and a **verdict**:
-- **SAFE** (90%+): Ship it
-- **RISKY** (70-89%): Review the recommendations
-- **DO NOT SHIP** (<70%): Fix the issues first
+# Day 14: After "minor" prompt changes
+ruvrics stability --input query.json --model gpt-4o-mini --compare v1.0
+
+# Output: "⚠️ REGRESSION: Stability dropped 98% → 84%"
+```
 
 ## Quick Start
 
@@ -38,10 +43,69 @@ pip install ruvrics
 export OPENAI_API_KEY="sk-..."
 ```
 
-**3. Run**
+**3. Run your first test**
 ```bash
 echo '{"user_input": "What is Python?"}' > query.json
 ruvrics stability --input query.json --model gpt-4o-mini --runs 20
+```
+
+**4. Save as baseline**
+```bash
+ruvrics stability --input query.json --model gpt-4o-mini --save-baseline v1.0
+```
+
+**5. Later: Check for drift**
+```bash
+ruvrics stability --input query.json --model gpt-4o-mini --compare v1.0
+```
+
+## What Gets Measured
+
+| Metric | Weight | What It Detects |
+|--------|--------|-----------------|
+| **Semantic** | 40% | Different answers to same question |
+| **Tool Usage** | 25% | Inconsistent tool calls |
+| **Structure** | 20% | Format changes (JSON→text, etc.) |
+| **Length** | 15% | Verbosity drift |
+
+**Verdicts:**
+- **SAFE** (90%+): Behavior is consistent
+- **RISKY** (70-89%): Review recommended
+- **DO NOT SHIP** (<70%): Significant instability
+
+## Key Features
+
+### Baseline Comparison (Drift Detection)
+
+Save a baseline when behavior is good, compare later to catch regressions:
+
+```bash
+# Save baseline after validation
+ruvrics stability --input query.json --model gpt-4o-mini --save-baseline prod-v1
+
+# After changes, compare to baseline
+ruvrics stability --input query.json --model gpt-4o-mini --compare prod-v1
+```
+
+### Model Comparison
+
+Compare behavior across model versions or providers:
+
+```bash
+# Compare two models on the same prompt
+ruvrics stability --input query.json --model gpt-4o-mini --compare-model gpt-4o
+```
+
+### Tool-Enabled Agent Testing
+
+Test complete agentic workflows with mock tool responses:
+
+```bash
+ruvrics stability \
+  --input query.json \
+  --tools tools.json \
+  --tool-mocks mocks.json \
+  --model gpt-4o-mini
 ```
 
 ## Example Output
@@ -64,55 +128,43 @@ Structural Consistency:    100.0% | LOW variance
 Length Consistency:         82.5% | MEDIUM variance
 
 ======================================================================
-NEXT STEPS
+COMPARISON TO BASELINE (prod-v1)
 ======================================================================
 
- This system is safe to ship!
+Baseline Score: 98.2% → Current: 94.7%  (-3.5%)
+Status: ⚠️ MINOR REGRESSION
+
+Changes Detected:
+- Semantic: 99.1% → 96.2% (responses slightly more varied)
+- Length: 91.0% → 82.5% (verbosity increased)
 
 ======================================================================
 ```
 
-Reports are saved to `reports/` with full details and recommendations.
+## When to Use Ruvrics
 
-## Testing Tool-Enabled Agents
+| Scenario | Command |
+|----------|---------|
+| Before deploying new prompt | `ruvrics stability --save-baseline prod` |
+| After prompt changes | `ruvrics stability --compare prod` |
+| Upgrading models | `ruvrics stability --compare-model gpt-4.1` |
+| CI/CD gate | `ruvrics stability --compare prod --fail-on-regression` |
 
-If your AI uses tools, you need to provide mock responses so Ruvrics can test the complete workflow:
+## CLI Reference
 
-**query.json**
-```json
-{"user_input": "Find flights from NYC to London"}
-```
-
-**tools.json**
-```json
-[{
-  "type": "function",
-  "function": {
-    "name": "search_flights",
-    "description": "Search for flights",
-    "parameters": {"type": "object", "properties": {"origin": {"type": "string"}, "destination": {"type": "string"}}}
-  }
-}]
-```
-
-**mocks.json** (what your tool would return)
-```json
-{
-  "search_flights": {"flights": [{"id": "UA123", "price": 450}, {"id": "BA456", "price": 520}]}
-}
-```
-
-**Run:**
 ```bash
 ruvrics stability \
-  --input query.json \
-  --tools tools.json \
-  --tool-mocks mocks.json \
-  --model gpt-4o-mini \
-  --runs 20
+  --input query.json \           # Required: user query
+  --model gpt-4o-mini \          # Required: model to test
+  --runs 20 \                    # Optional: runs (10-50, default: 20)
+  --prompt system.txt \          # Optional: system prompt
+  --tools tools.json \           # Optional: tool definitions
+  --tool-mocks mocks.json \      # Required if using tools
+  --save-baseline <name> \       # Save results as named baseline
+  --compare <name> \             # Compare to saved baseline
+  --compare-model <model> \      # Compare to different model
+  --output results.json          # Custom output path
 ```
-
-This tests the full loop: prompt → tool call → tool response → final answer.
 
 ## Supported Models
 
@@ -123,71 +175,33 @@ This tests the full loop: prompt → tool call → tool response → final answe
 
 ## Installation Options
 
-**Standard** (works on CPU and GPU):
 ```bash
+# Standard (CPU + GPU support)
 pip install ruvrics
-```
 
-**Lightweight** (CPU-only, ~200MB instead of ~4GB):
-```bash
+# Lightweight (CPU-only, ~200MB vs ~4GB)
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install ruvrics
-```
 
-**From source:**
-```bash
-git clone https://github.com/ruvrics-ai/ruvrics.git
-cd ruvrics
-pip install -e .
-```
-
-## Configuration
-
-Set API keys via environment variables or `.env` file:
-
-```bash
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-## CLI Reference
-
-```bash
-ruvrics stability \
-  --input query.json \        # Required: user query
-  --model gpt-4o-mini \       # Required: model to test
-  --runs 20 \                 # Optional: number of runs (10-50, default: 20)
-  --prompt system.txt \       # Optional: system prompt file
-  --tools tools.json \        # Optional: tool definitions
-  --tool-mocks mocks.json \   # Required if using tools
-  --output results.json       # Optional: custom output path
+# From source
+git clone https://github.com/ruvrics-ai/ruvrics.git && cd ruvrics && pip install -e .
 ```
 
 ## Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| 0 | SAFE - stable, ready to ship |
-| 1 | RISKY - review recommendations |
-| 2 | DO NOT SHIP - critical issues |
+| 0 | SAFE or no regression |
+| 1 | RISKY or minor regression |
+| 2 | DO NOT SHIP or major regression |
 
-## How It Works
+## Advanced Scenarios
 
-1. **Execute**: Run the same prompt N times with temperature=0
-2. **Measure**: Calculate semantic similarity (embeddings), tool patterns, structure, length
-3. **Score**: Weighted average of all metrics
-4. **Diagnose**: Identify root causes of any instability
-5. **Recommend**: Provide actionable fixes
-
-## Advanced Testing Scenarios
-
-See `examples/scenarios/` for 6 advanced test cases:
-1. Multi-tool ambiguity (tool selection varies)
-2. Optional tool usage (unnecessary tool calls)
-3. Argument drift (same tool, different arguments)
-4. Tool→answer mismatch (same data, different conclusions)
-5. Tool failure handling (error responses)
-6. Multi-step chains (sequence stability)
+See `examples/scenarios/` for edge case tests:
+- Multi-tool ambiguity
+- Argument drift
+- Tool failure handling
+- Multi-step chains
 
 ## Documentation
 
@@ -195,31 +209,14 @@ See `examples/scenarios/` for 6 advanced test cases:
 - `docs/CONFIGURATION_GUIDE.md` - Configuration reference
 - `docs/FAQ.md` - Frequently asked questions
 
-## Development
-
-```bash
-# Run tests
-pytest tests/ -v
-
-# Format code
-black ruvrics/ tests/
-
-# Type check
-mypy ruvrics/
-```
-
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Run `pytest tests/ -v`
-5. Submit a pull request
+1. Fork → 2. Branch → 3. Test (`pytest tests/ -v`) → 4. PR
 
 ## Support
 
-Open an issue on [GitHub](https://github.com/ruvrics-ai/ruvrics/issues).
+[Open an issue](https://github.com/ruvrics-ai/ruvrics/issues) on GitHub.
