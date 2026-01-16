@@ -160,18 +160,29 @@ SUPPORTED_MODELS: dict[str, ModelConfig] = {
     "gpt-3.5-turbo": ModelConfig(
         name="gpt-3.5-turbo", provider="openai", supports_tools=True
     ),
-    # Anthropic models
-    "claude-opus-4": ModelConfig(
-        name="claude-opus-4-20250514", provider="anthropic", supports_tools=True
+    # Anthropic models - Claude 4.5 (latest)
+    "claude-sonnet-4.5": ModelConfig(
+        name="claude-sonnet-4-5-20250929", provider="anthropic", supports_tools=True
     ),
+    "claude-haiku-4.5": ModelConfig(
+        name="claude-haiku-4-5-20251001", provider="anthropic", supports_tools=True
+    ),
+    "claude-opus-4.5": ModelConfig(
+        name="claude-opus-4-5-20251101", provider="anthropic", supports_tools=True
+    ),
+    # Anthropic models - Claude 4 (legacy but available)
     "claude-sonnet-4": ModelConfig(
         name="claude-sonnet-4-20250514", provider="anthropic", supports_tools=True
     ),
-    "claude-sonnet-3.5": ModelConfig(
-        name="claude-3-5-sonnet-20241022", provider="anthropic", supports_tools=True
+    "claude-opus-4": ModelConfig(
+        name="claude-opus-4-20250514", provider="anthropic", supports_tools=True
     ),
-    "claude-haiku-4": ModelConfig(
-        name="claude-haiku-4-20250514", provider="anthropic", supports_tools=True
+    # Anthropic models - Claude 3.x (legacy)
+    "claude-sonnet-3.7": ModelConfig(
+        name="claude-3-7-sonnet-20250219", provider="anthropic", supports_tools=True
+    ),
+    "claude-haiku-3": ModelConfig(
+        name="claude-3-haiku-20240307", provider="anthropic", supports_tools=True
     ),
 }
 

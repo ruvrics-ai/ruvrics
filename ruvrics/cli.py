@@ -422,23 +422,34 @@ def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, comp
             result.save_to_file(str(json_path))
             console.print(f"📁 JSON results saved to: {json_path}", style="dim")
 
-        # Determine exit code
-        exit_code = 0
+        # Display final result summary
+        console.print()
+        console.print("─" * 70)
 
-        # Check for regression (takes precedence)
         if comparison_result:
+            # Baseline comparison result
             if comparison_result.status == "MAJOR_REGRESSION":
-                exit_code = 2
+                console.print(f"📉 Result: MAJOR REGRESSION detected ({comparison_result.score_delta:+.1f}% from baseline)", style="bold red")
             elif comparison_result.status == "MINOR_REGRESSION":
-                exit_code = 1
+                console.print(f"📉 Result: Minor regression detected ({comparison_result.score_delta:+.1f}% from baseline)", style="bold yellow")
+            elif comparison_result.status == "IMPROVED":
+                console.print(f"📈 Result: IMPROVED ({comparison_result.score_delta:+.1f}% from baseline)", style="bold green")
+            else:
+                console.print(f"✅ Result: STABLE (no significant change from baseline)", style="bold green")
         else:
-            # Use risk classification
-            if result.risk_classification == "DO_NOT_SHIP":
-                exit_code = 2
+            # Standalone stability result
+            if result.risk_classification == "SAFE":
+                console.print(f"✅ Result: SAFE TO SHIP - Stability score {result.stability_score:.1f}%", style="bold green")
             elif result.risk_classification == "RISKY":
-                exit_code = 1
+                console.print(f"⚠️  Result: NEEDS REVIEW - Stability score {result.stability_score:.1f}% (below 90% threshold)", style="bold yellow")
+            else:
+                console.print(f"🚫 Result: DO NOT SHIP - Stability score {result.stability_score:.1f}% (below 70% threshold)", style="bold red")
 
-        sys.exit(exit_code)
+        console.print("─" * 70)
+
+        # Always exit 0 - test completed successfully
+        # The result (SAFE/RISKY/DO_NOT_SHIP) is informational, not an error
+        sys.exit(0)
 
     except APIKeyMissingError as e:
         track_error("APIKeyMissingError", "stability")
