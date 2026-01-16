@@ -133,3 +133,48 @@ class ModelNotSupportedError(RuvricsError):
         super().__init__(message)
         self.model = model
         self.supported_models = supported_models
+
+
+class ToolMockRequiredError(RuvricsError):
+    """
+    Raised when tools are provided but tool mocks are missing.
+
+    Tool mocks are required for complete stability testing of tool-enabled AI systems.
+    """
+
+    def __init__(self, tool_names: list[str]):
+        """
+        Initialize tool mock required error.
+
+        Args:
+            tool_names: List of tool names that need mocks
+        """
+        tools_list = ", ".join(tool_names)
+        message = (
+            f"Tool mocks required for complete stability testing.\n\n"
+            f"Your query uses tools: {tools_list}\n\n"
+            f"WHY MOCKS ARE NEEDED:\n"
+            f"When an LLM calls a tool, it waits for the tool's response before generating\n"
+            f"the final answer. Ruvrics doesn't have access to your actual tool implementations\n"
+            f"(APIs, databases, etc.), so it needs mock responses to complete the conversation.\n\n"
+            f"Without mocks, Ruvrics can only test 'tool routing consistency' (did the LLM\n"
+            f"call the right tools?), but cannot test 'response consistency' (did the LLM\n"
+            f"give consistent final answers?).\n\n"
+            f"HOW TO PROVIDE MOCKS:\n"
+            f"Create a JSON file with mock responses for each tool:\n\n"
+            f"  {{\n"
+            f'    "{tool_names[0] if tool_names else "your_tool"}": {{\n'
+            f'      "result": "sample data",\n'
+            f'      "status": "success"\n'
+            f"    }}\n"
+            f"  }}\n\n"
+            f"Then run:\n"
+            f"  ruvrics stability --input query.json --tools tools.json --tool-mocks mocks.json\n\n"
+            f"COST-EFFECTIVE:\n"
+            f"Mock responses are reused for all N runs, so you only define them once.\n"
+            f"This ensures consistent tool results across runs, isolating the LLM's behavior\n"
+            f"for accurate stability measurement.\n\n"
+            f"NO TOOLS? If your query doesn't need tools, remove --tools from the command."
+        )
+        super().__init__(message)
+        self.tool_names = tool_names

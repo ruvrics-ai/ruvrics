@@ -47,6 +47,9 @@ class SemanticAnalyzer:
         2. Compute centroid embedding (mean)
         3. Calculate mean cosine similarity to centroid
 
+        Also detects empty response inconsistency - when some responses are
+        empty and some are not, this is a significant consistency issue.
+
         Args:
             outputs: List of output texts from all runs
 
@@ -58,6 +61,11 @@ class SemanticAnalyzer:
         """
         if len(outputs) < 2:
             raise ValueError("Need at least 2 outputs to calculate consistency")
+
+        # Detect empty response inconsistency
+        empty_count = sum(1 for o in outputs if not o or not o.strip())
+        non_empty_count = len(outputs) - empty_count
+        has_empty_inconsistency = empty_count > 0 and non_empty_count > 0
 
         try:
             # Embed all outputs
@@ -81,6 +89,15 @@ class SemanticAnalyzer:
             # Convert to 0-100 scale (from spec Section 3.1)
             semantic_consistency_score = semantic_raw_score * 100
 
+            # Apply penalty for empty response inconsistency
+            # This is a serious issue - some runs returned content, others didn't
+            if has_empty_inconsistency:
+                empty_ratio = empty_count / len(outputs)
+                # Penalty proportional to the inconsistency
+                # 50% empty = 50% penalty, etc.
+                penalty = empty_ratio * 50  # Max 50 point penalty
+                semantic_consistency_score = max(0, semantic_consistency_score - penalty)
+
             # Classify drift using thresholds from spec Section 4
             variance = self._classify_drift(semantic_consistency_score)
 
@@ -93,6 +110,8 @@ class SemanticAnalyzer:
                     "min_similarity": float(np.min(similarities)),
                     "max_similarity": float(np.max(similarities)),
                     "std_similarity": float(np.std(similarities)),
+                    "empty_response_count": empty_count,
+                    "has_empty_inconsistency": has_empty_inconsistency,
                 },
             )
 

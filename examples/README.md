@@ -1,72 +1,61 @@
 # Ruvrics Examples
 
-This directory contains example files for testing the Ruvrics stability analysis tool.
+Example files for testing LLM behavioral stability.
 
-## Example Files
+## Quick Start Examples
 
-### 1. Simple Query (query_simple.json)
+### 1. Simple Query (No Tools)
 
-Basic query without tool usage. Tests semantic and structural stability of straightforward responses.
-
-Usage:
 ```bash
 ruvrics stability \
   --input examples/query_simple.json \
-  --model gpt-4-turbo \
+  --model gpt-4o-mini \
   --runs 20
 ```
 
-### 2. Query with Tools (Modular Approach - Recommended)
+### 2. With Tools (Agentic Testing)
 
-Separate query and tool definitions for better reusability. Tests tool-routing stability.
+```bash
+ruvrics stability \
+  --input examples/query_with_tools.json \
+  --tools examples/tools.json \
+  --tool-mocks examples/tool_mocks.json \
+  --model gpt-4o-mini \
+  --runs 20
+```
 
-Files:
-- query_with_tools.json - Just the user query
-- tools.json - Reusable tool definitions
-- system_prompt.txt - System instructions
+### 3. With System Prompt
 
-Usage:
 ```bash
 ruvrics stability \
   --prompt examples/system_prompt.txt \
   --input examples/query_with_tools.json \
   --tools examples/tools.json \
-  --model gpt-4-turbo \
+  --tool-mocks examples/tool_mocks.json \
+  --model gpt-4o-mini \
   --runs 20
 ```
 
-### 3. Query with Tools (All-in-One Format)
+## Files in This Directory
 
-Legacy format with tools embedded in the query file. Still supported but less modular.
+| File | Purpose |
+|------|---------|
+| `query_simple.json` | Basic query without tools |
+| `query_with_tools.json` | Query that triggers tool usage |
+| `query_messages.json` | OpenAI messages format |
+| `query.json` | Legacy format with embedded tools |
+| `tools.json` | Tool definitions (OpenAI format) |
+| `tool_mocks.json` | Mock responses for tool execution |
+| `system_prompt.txt` | Example system prompt |
 
-Usage:
-```bash
-ruvrics stability \
-  --prompt examples/system_prompt.txt \
-  --input examples/query.json \
-  --model gpt-4-turbo \
-  --runs 20 \
-  --output results.json
+## Input Formats
+
+### Simple Format
+```json
+{"user_input": "What is Python?"}
 ```
 
-### 4. Messages Format (query_messages.json)
-
-Uses the OpenAI messages format with system and user messages. Tests stability with conversational context.
-
-Usage:
-```bash
-ruvrics stability \
-  --input examples/query_messages.json \
-  --model gpt-4o \
-  --runs 15
-```
-
-## Input Format Types
-
-Ruvrics supports three input formats:
-
-### Format A: Simple (system_prompt + user_input)
-
+### With System Prompt
 ```json
 {
   "system_prompt": "You are a helpful assistant.",
@@ -74,8 +63,7 @@ Ruvrics supports three input formats:
 }
 ```
 
-### Format B: Messages
-
+### Messages Format
 ```json
 {
   "messages": [
@@ -85,65 +73,22 @@ Ruvrics supports three input formats:
 }
 ```
 
-### Format C: Tool-enabled
+## Tool Mock Format
+
+When testing tool-enabled agents, provide mock responses:
 
 ```json
 {
-  "user_input": "Find flights to Tokyo",
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "search_flights",
-        "description": "Search for flights",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "origin": {"type": "string"},
-            "destination": {"type": "string"}
-          }
-        }
-      }
-    }
-  ]
+  "search_flights": {
+    "flights": [
+      {"flight_number": "UA875", "price": 850}
+    ]
+  }
 }
 ```
 
-You can also combine system prompt from a file with tools in JSON:
+**Why mocks?** LLMs stop and wait for tool results. Mocks let Ruvrics test the complete workflow: prompt → tool call → response → final answer.
 
-```bash
-ruvrics stability \
-  --prompt system_prompt.txt \
-  --input query_with_tools.json \
-  --tools tools.json \
-  --model gpt-4o \
-  --runs 20
-```
+## Advanced Scenarios
 
-## Expected API Keys
-
-Make sure you have the appropriate API keys set in your environment:
-
-```bash
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-Or create a .env file in the project root:
-
-```
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-## Interpreting Results
-
-- SAFE (score >= 90%): System is stable and ready to ship
-- RISKY (70-89%): Review recommended fixes before shipping
-- DO_NOT_SHIP (< 70%): Critical stability issues detected
-
-See the generated report for:
-- Component breakdown (semantic, tool, structural, length)
-- Root cause analysis
-- Actionable recommendations
-- Next steps
+See `scenarios/` for 6 advanced test cases covering edge cases like multi-tool ambiguity, argument drift, and tool failure handling.

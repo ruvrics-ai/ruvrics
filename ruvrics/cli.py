@@ -71,11 +71,16 @@ def main():
     help="Path to tools/functions JSON file (optional)",
 )
 @click.option(
+    "--tool-mocks",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Path to tool mock responses JSON file (optional, enables agentic testing)",
+)
+@click.option(
     "--output",
     type=click.Path(dir_okay=False),
     help="Save results to JSON file",
 )
-def stability(prompt, input, model, runs, tools, output):
+def stability(prompt, input, model, runs, tools, tool_mocks, output):
     """
     Run stability analysis on an LLM system.
 
@@ -98,9 +103,7 @@ def stability(prompt, input, model, runs, tools, output):
     """
     try:
         # Validate runs parameter
-        if not 10 <= runs <= 50:
-            raise click.BadParameter("Runs must be between 10 and 50")
-
+        
         # Load configuration
         config = get_config()
         model_config = get_model_config(model)
@@ -111,6 +114,10 @@ def stability(prompt, input, model, runs, tools, output):
                 f"Runs must be at least {config.min_successful_runs} for reliable analysis. "
                 f"You specified {runs}. Please use --runs {config.min_successful_runs} or higher."
             )
+    
+        if not config.min_successful_runs <= runs <= config.max_successful_runs:
+            raise click.BadParameter("Runs must be between 15 and 50")
+
 
         console.print()
         console.print("🔍 AI Stability Analysis", style="bold cyan")
@@ -137,6 +144,14 @@ def stability(prompt, input, model, runs, tools, output):
             # Add tools to input data
             if "tools" not in input_data:
                 input_data["tools"] = tools_data
+
+        # Load tool mocks file if provided
+        if tool_mocks:
+            with open(tool_mocks, "r") as f:
+                tool_mocks_data = json.load(f)
+            # Add tool mocks to input data
+            if "tool_mock_responses" not in input_data:
+                input_data["tool_mock_responses"] = tool_mocks_data
 
         # Create input configuration
         input_config = InputConfig(**input_data)

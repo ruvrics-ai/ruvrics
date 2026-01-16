@@ -1,0 +1,48 @@
+{
+  "search_flights": {
+    "flights": [
+      {
+        "flight_number": "UA875",
+        "airline": "United Airlines",
+        "departure": "San Francisco (SFO)",
+        "arrival": "Tokyo Narita (NRT)",
+        "departure_time": "2024-02-15 11:00",
+        "arrival_time": "2024-02-16 14:30",
+        "duration": "11h 30m",
+        "price": 850,
+        "currency": "USD",
+        "class": "Economy"
+      },
+      {
+        "flight_number": "AA26",
+        "airline": "American Airlines",
+        "departure": "San Francisco (SFO)",
+        "arrival": "Tokyo Haneda (HND)",
+        "departure_time": "2024-02-15 13:45",
+        "arrival_time": "2024-02-16 17:15",
+        "duration": "11h 30m",
+        "price": 920,
+        "currency": "USD",
+        "class": "Economy"
+      },
+      {
+        "flight_number": "NH7",
+        "airline": "ANA",
+        "departure": "San Francisco (SFO)",
+        "arrival": "Tokyo Narita (NRT)",
+        "departure_time": "2024-02-15 17:00",
+        "arrival_time": "2024-02-16 20:30",
+        "duration": "11h 30m",
+        "price": 780,
+        "currency": "USD",
+        "class": "Economy"
+      }
+    ],
+    "search_metadata": {
+      "total_results": 3,
+      "search_date": "2024-01-10",
+      "origin": "San Francisco",
+      "destination": "Tokyo"
+    }
+  }
+}
