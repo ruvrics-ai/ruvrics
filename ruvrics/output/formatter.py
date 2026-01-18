@@ -56,27 +56,27 @@ def format_stability_report(result: StabilityResult) -> str:
     )
     console.print()
 
-    # Component breakdown
+    # Consistency breakdown
     console.print("=" * 70, style="bold cyan")
-    console.print("COMPONENT BREAKDOWN", style="bold cyan")
+    console.print("CONSISTENCY BREAKDOWN", style="bold cyan")
     console.print("=" * 70, style="bold cyan")
     console.print()
 
     _print_metric_line(
         console,
-        "Semantic Consistency:",
+        "Response Consistency:",
         result.semantic_consistency_score,
         result.semantic_drift,
     )
     _print_metric_line(
         console,
-        "Structural Consistency:",
+        "Format Consistency:",
         result.structural_consistency_score,
         result.structural_variance,
     )
     _print_metric_line(
         console,
-        "Tool-Call Consistency:",
+        "Tool Consistency:",
         result.tool_consistency_score,
         result.tool_variance,
     )
@@ -180,9 +180,10 @@ def _print_metric_line(
 
     # Color based on variance
     variance_color = _get_variance_color(variance)
+    status = _get_variance_status(variance)
 
     console.print(
-        f"{label:<26} {score:>5.1f}% │ {bar} │ {variance} variance",
+        f"{label:<24} {score:>5.1f}% │ {bar} │ {status}",
         style=variance_color,
         highlight=False,
     )
@@ -216,6 +217,16 @@ def _get_variance_color(variance: str) -> str:
         return "yellow"
     else:  # HIGH
         return "red"
+
+
+def _get_variance_status(variance: str) -> str:
+    """Convert variance to user-friendly status."""
+    if variance == "LOW" or variance == "N/A" or variance == "NONE":
+        return "✅ Excellent"
+    elif variance == "MEDIUM":
+        return "⚠️ Good"
+    else:  # HIGH
+        return "❌ Needs Attention"
 
 
 def print_stability_report(result: StabilityResult) -> None:
