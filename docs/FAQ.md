@@ -1,86 +1,160 @@
-# Ruvrics – Frequently Asked Questions (FAQ)
+# Ruvrics - Frequently Asked Questions
 
-This document captures common issues, pitfalls, and clarifications for users of **ruvrics**. It will evolve over time as new questions arise.
+Common questions and troubleshooting for Ruvrics users.
 
 ---
 
-## ❓ I installed `ruvrics` from TestPyPI, but it shows an older version
+## General
 
-### **What I see**
-I installed `ruvrics` from TestPyPI, but `pip show ruvrics` shows an older version than expected.
+### What does Ruvrics measure?
+
+Ruvrics measures **behavioral consistency**, not correctness. It runs the same prompt N times and checks if your LLM system behaves the same way every time. It won't tell you if answers are *right* — it tells you if they're *changing*.
+
+### What's the difference between stability and correctness?
+
+- **Stability**: Does the system give consistent responses to identical inputs?
+- **Correctness**: Are the responses factually accurate?
+
+Ruvrics focuses on stability. A system can be consistently wrong (stable but incorrect) or inconsistently right (unstable but sometimes correct). Ruvrics catches the instability.
+
+### Why 20 runs by default?
+
+20 runs provides a good balance between statistical reliability and cost. With 20 samples, you can detect patterns of instability without excessive API spend. You can adjust with `--runs 10` (minimum) to `--runs 50` (maximum).
+
+---
+
+## Installation
+
+### PyTorch download is huge (~4GB). Is there a lighter option?
+
+Yes. Pre-install CPU-only PyTorch before installing Ruvrics:
 
 ```bash
-pip install --index-url https://test.pypi.org/simple/ ruvrics
-pip show ruvrics
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install ruvrics
 ```
 
----
+This reduces the download to ~200MB.
 
-### **Why this happens**
-This is a common TestPyPI + pip behavior and is **not an error** in `ruvrics`.
+### First run is slow - what's happening?
 
-Possible reasons:
-
-1. **pip cache**  
-   `pip` may reuse a cached wheel or metadata from a previous install.
-
-2. **TestPyPI metadata delay**  
-   TestPyPI can lag when updating the "latest version" pointer, so pip may resolve an older release.
-
-3. **Dependencies are not hosted on TestPyPI**  
-   TestPyPI does not host packages like NumPy or Torch. Without a fallback to the main PyPI index, resolution may behave inconsistently.
-
-4. **An older version is already installed**  
-   pip does not always upgrade an existing package automatically.
+On first run, Ruvrics downloads the sentence-transformers embedding model (~80MB). This is a one-time download and will be cached for future runs.
 
 ---
 
-### **How to fix it (recommended)**
+## Usage
 
-Install with an explicit version, disable cache, and allow dependency resolution from the main PyPI index:
+### How do I test tool-enabled agents?
+
+When your LLM uses tools, you must provide mock responses so Ruvrics can complete the workflow:
 
 ```bash
-pip uninstall -y ruvrics
-pip cache purge
-pip install \
-  --no-cache-dir \
-  --index-url https://test.pypi.org/simple/ \
-  --extra-index-url https://pypi.org/simple \
-  ruvrics==0.1.3
+ruvrics stability \
+  --input query.json \
+  --tools tools.json \
+  --tool-mocks mocks.json \
+  --model gpt-4o-mini
 ```
 
-Verify the installed version:
+Without mocks, Ruvrics can only measure tool *routing* consistency, not the final response consistency.
+
+### What does "tool mocks required" error mean?
+
+When you provide `--tools`, Ruvrics requires `--tool-mocks` because:
+1. LLMs stop and wait for tool results before generating final answers
+2. Ruvrics doesn't have access to your actual tool implementations
+3. Mocks let Ruvrics test the complete workflow
+
+Create a simple JSON file with mock responses:
+
+```json
+{
+  "your_tool_name": {
+    "result": "sample response"
+  }
+}
+```
+
+### How do I save and compare baselines?
 
 ```bash
-pip show ruvrics
+# Save baseline when behavior is good
+ruvrics stability --input query.json --model gpt-4o-mini --save-baseline prod-v1
+
+# Later, compare after changes
+ruvrics stability --input query.json --model gpt-4o-mini --compare prod-v1
 ```
+
+Baselines are stored in `~/.ruvrics/baselines/`.
+
+### How do I compare two different models?
+
+```bash
+ruvrics stability --input query.json --model gpt-4o-mini --compare-model gpt-4o
+```
+
+This runs stability tests on both models and shows the difference.
 
 ---
 
-### **Helpful checks**
+## Interpreting Results
 
-See which versions are available on TestPyPI:
+### What do the verdicts mean?
 
-```bash
-pip index versions ruvrics --index-url https://test.pypi.org/simple/
-```
+| Verdict | Score | Meaning |
+|---------|-------|---------|
+| **SAFE** | 90%+ | Behavior is consistent, safe to deploy |
+| **RISKY** | 70-89% | Some inconsistency, review before deploying |
+| **DO NOT SHIP** | <70% | Significant instability, fix before deploying |
 
-Check whether pip has cached an older wheel:
+### What are the component scores?
 
-```bash
-pip cache list | grep ruvrics
-```
+| Component | Weight | What It Measures |
+|-----------|--------|------------------|
+| Semantic | 40% | Do responses mean the same thing? |
+| Tool Usage | 25% | Are the same tools called consistently? |
+| Structure | 20% | Is the output format consistent (JSON, markdown, etc.)? |
+| Length | 15% | Is response length consistent? |
+
+### My score is 100% - is that normal?
+
+Yes, for simple queries with modern models (GPT-4o, Claude Sonnet 4), 100% stability is common. This is a good sign - your prompt is clear and deterministic. The value of Ruvrics is catching *regressions* when you make changes.
 
 ---
 
-### **Best practice when using TestPyPI**
+## Troubleshooting
 
-- Use an **explicit version** when installing from TestPyPI
-- Include `--extra-index-url https://pypi.org/simple` for dependencies
-- Prefer a **fresh virtual environment** when testing
-- Use `--no-cache-dir` when validating new installs
+### "API key not found" error
+
+Set your API key as an environment variable:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+# or
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### "Model not supported" error
+
+Check supported models:
+- **OpenAI**: gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-4, gpt-3.5-turbo
+- **Anthropic**: claude-opus-4, claude-sonnet-4, claude-sonnet-3.5, claude-haiku-4
+
+### "Insufficient successful runs" error
+
+This means too many API calls failed (fewer than 15 out of 20 succeeded). Possible causes:
+- Rate limiting - wait and retry
+- Invalid API key - check credentials
+- Network issues - check connectivity
+
+Try increasing runs: `--runs 30`
+
+### Progress bar stuck at 0%
+
+The first API call may take longer due to cold start. Wait up to 60 seconds. If it times out, check your network and API key.
 
 ---
 
-More FAQs will be added here as the project evolves.
+## More Questions?
 
+[Open an issue](https://github.com/ruvrics-ai/ruvrics/issues) on GitHub.

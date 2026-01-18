@@ -212,9 +212,7 @@ See `examples/scenarios/` for edge case tests:
 
 ## Documentation
 
-- `docs/AI_STABILITY_FINAL_SPEC.md` - Technical specification
-- `docs/CONFIGURATION_GUIDE.md` - Configuration reference
-- `docs/FAQ.md` - Frequently asked questions
+- [FAQ](docs/FAQ.md) - Frequently asked questions and troubleshooting
 
 ## License
 
