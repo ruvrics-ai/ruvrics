@@ -1,6 +1,6 @@
 [project]
 name = "ruvrics"
-version = "0.2.1"
+version = "0.2.2"
 description = "AI Behavioral Stability & Reliability Engine - Measure LLM consistency and reliability"
 readme = "README.md"
 requires-python = ">=3.10"
