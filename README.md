@@ -64,12 +64,12 @@ ruvrics stability --input query.json --model gpt-4o-mini --compare v1.0
 
 ## What Gets Measured
 
-| Metric | Weight | What It Detects |
-|--------|--------|-----------------|
-| **Semantic** | 40% | Different answers to same question |
-| **Tool Usage** | 25% | Inconsistent tool calls |
-| **Structure** | 20% | Format changes (JSON→text, etc.) |
-| **Length** | 15% | Verbosity drift |
+| Check | Weight | What It Detects |
+|-------|--------|-----------------|
+| **Response Consistency** | 40% | Are answers saying the same thing? |
+| **Tool Consistency** | 25% | Are the same tools being called? |
+| **Format Consistency** | 20% | Is output format stable (JSON, text, etc.)? |
+| **Length Consistency** | 15% | Is response length stable? |
 
 **Verdicts:**
 - **SAFE** (90%+): Behavior is consistent
@@ -115,20 +115,20 @@ ruvrics stability \
 
 ```
 ======================================================================
-                         AI STABILITY REPORT
+                         STABILITY REPORT
 ======================================================================
 Tested: gpt-4o-mini | Runs: 20/20 | Duration: 45.2s
 
-Overall Stability Score: 94.7%  SAFE
+Overall Stability Score: 94.7%  ✅ SAFE
 
 ======================================================================
-COMPONENT BREAKDOWN
+CONSISTENCY BREAKDOWN
 ======================================================================
 
-Semantic Consistency:       96.2% | LOW variance
-Tool-Call Consistency:     100.0% | LOW variance
-Structural Consistency:    100.0% | LOW variance
-Length Consistency:         82.5% | MEDIUM variance
+Response Consistency:       96.2%  ✅ Excellent
+Tool Consistency:          100.0%  ✅ Excellent
+Format Consistency:        100.0%  ✅ Excellent
+Length Consistency:         82.5%  ⚠️ Good
 
 ======================================================================
 COMPARISON TO BASELINE (prod-v1)
@@ -138,8 +138,8 @@ Baseline Score: 98.2% → Current: 94.7%  (-3.5%)
 Status: ⚠️ MINOR REGRESSION
 
 Changes Detected:
-- Semantic: 99.1% → 96.2% (responses slightly more varied)
-- Length: 91.0% → 82.5% (verbosity increased)
+- Responses slightly more varied (99.1% → 96.2%)
+- Verbosity increased (91.0% → 82.5%)
 
 ======================================================================
 ```
