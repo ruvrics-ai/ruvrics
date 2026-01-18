@@ -19,7 +19,9 @@ Just **different decisions** — and users notice before you do.
 
 ## The Solution
 
-Ruvrics runs your prompt N times and measures behavioral consistency. More importantly, it lets you **save baselines** and **detect drift** over time:
+Ruvrics runs your prompt N times and measures whether your AI system behaves the same way every time. More importantly, it lets you **save baselines** and **detect drift** over time.
+
+> **Note:** Ruvrics measures consistency, not correctness. It won't tell you if answers are *right* — it tells you if they're *changing*.
 
 ```bash
 # Day 1: Establish baseline
@@ -47,6 +49,7 @@ export OPENAI_API_KEY="sk-..."
 ```bash
 echo '{"user_input": "What is Python?"}' > query.json
 ruvrics stability --input query.json --model gpt-4o-mini --runs 20
+# Runs the same input multiple times to measure stability
 ```
 
 **4. Save as baseline**
@@ -165,6 +168,10 @@ ruvrics stability \
   --compare-model <model> \      # Compare to different model
   --output results.json          # Custom output path
 ```
+
+## Input File Examples
+
+See [`examples/`](examples/) for ready-to-run query files, tool definitions, and mock responses.
 
 ## Supported Models
 
