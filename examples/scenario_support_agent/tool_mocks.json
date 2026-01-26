@@ -1,0 +1,74 @@
+{
+  "search_knowledge_base": {
+    "results": [
+      {
+        "title": "How to Cancel Your Subscription",
+        "snippet": "To cancel your subscription, go to Settings > Billing > Cancel Plan. Note: Cancellations take effect at the end of your current billing cycle.",
+        "url": "/help/cancel-subscription",
+        "relevance": 0.92
+      },
+      {
+        "title": "Refund Policy",
+        "snippet": "We offer full refunds within 14 days of purchase. Pro-rated refunds available for annual plans cancelled after 14 days. Contact support for refund requests.",
+        "url": "/help/refund-policy",
+        "relevance": 0.87
+      },
+      {
+        "title": "Billing Cycle and Charges",
+        "snippet": "Subscriptions are billed on the same date each month. If you upgrade mid-cycle, you'll be charged a pro-rated amount.",
+        "url": "/help/billing-cycle",
+        "relevance": 0.75
+      }
+    ],
+    "total_results": 3
+  },
+  "get_customer_info": {
+    "customer_id": "CUST-78234",
+    "email": "sarah.johnson@email.com",
+    "name": "Sarah Johnson",
+    "plan": "Professional",
+    "plan_price": 49.99,
+    "billing_cycle": "monthly",
+    "member_since": "2023-06-15",
+    "subscription_status": "active",
+    "last_payment": {
+      "date": "2025-01-15",
+      "amount": 49.99,
+      "status": "successful"
+    },
+    "payment_method": "Visa ending in 4242",
+    "usage_this_month": {
+      "api_calls": 1250,
+      "storage_gb": 12.5,
+      "team_members": 3
+    },
+    "support_history": [
+      {
+        "date": "2024-11-20",
+        "issue": "Password reset",
+        "resolution": "Resolved"
+      },
+      {
+        "date": "2024-08-05",
+        "issue": "Upgrade to Professional",
+        "resolution": "Completed"
+      }
+    ],
+    "account_flags": []
+  },
+  "create_ticket": {
+    "ticket_id": "TKT-2025-0892",
+    "status": "created",
+    "assigned_to": "Tier 2 Support Queue",
+    "estimated_response": "24 hours",
+    "message": "Ticket created successfully. Customer will receive email confirmation."
+  },
+  "process_refund": {
+    "refund_id": "REF-2025-0156",
+    "status": "approved",
+    "amount": 49.99,
+    "method": "Original payment method (Visa ending in 4242)",
+    "processing_time": "5-7 business days",
+    "message": "Refund approved and processing."
+  }
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search_knowledge_base",
+      "description": "Search the company knowledge base for articles, FAQs, and troubleshooting guides",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["billing", "technical", "account", "product"],
+            "description": "Category to filter results"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_customer_info",
+      "description": "Retrieve customer account information including subscription, billing status, and history",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer ID or email"
+          }
+        },
+        "required": ["customer_id"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "create_ticket",
+      "description": "Create a support ticket for issues that need further investigation",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer ID"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "urgent"],
+            "description": "Ticket priority"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["billing", "technical", "account", "feature_request"],
+            "description": "Issue category"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Brief summary of the issue"
+          }
+        },
+        "required": ["customer_id", "priority", "category", "summary"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "process_refund",
+      "description": "Process a refund for a customer. Use only when refund is clearly warranted.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Customer ID"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Refund amount in dollars"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for refund"
+          }
+        },
+        "required": ["customer_id", "amount", "reason"]
+      }
+    }
+  }
+]

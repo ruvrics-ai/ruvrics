@@ -1,0 +1,20 @@
+{
+  "get_weather": {
+    "temperature": "72F",
+    "condition": "sunny",
+    "location": "San Francisco"
+  },
+  "get_news": {
+    "headlines": [
+      "Tech stocks rise amid AI optimism",
+      "Climate summit reaches new agreement",
+      "Local sports team wins championship"
+    ]
+  },
+  "get_calendar": {
+    "events": [
+      {"time": "10:00 AM", "title": "Team standup"},
+      {"time": "2:00 PM", "title": "Product review"}
+    ]
+  }
+}
