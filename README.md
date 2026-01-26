@@ -160,6 +160,7 @@ ruvrics stability \
   --input query.json \           # Required: user query
   --model gpt-4o-mini \          # Required: model to test
   --runs 20 \                    # Optional: runs (10-50, default: 20)
+  --temperature 0.0 \            # Optional: LLM temperature (default: 0.0)
   --prompt system.txt \          # Optional: system prompt
   --tools tools.json \           # Optional: tool definitions
   --tool-mocks mocks.json \      # Required if using tools
@@ -168,6 +169,19 @@ ruvrics stability \
   --compare-model <model> \      # Compare to different model
   --output results.json          # Custom output path
 ```
+
+### Temperature Setting
+
+By default, ruvrics uses `temperature=0.0` for maximum determinism. Use higher values to test real-world variance:
+
+```bash
+# Test with production-like temperature
+ruvrics stability --input query.json --model gpt-4o-mini --temperature 0.5
+```
+
+- `0.0` - Maximum determinism (default, recommended for baseline)
+- `0.3-0.7` - Typical production settings, shows natural variance
+- `1.0` - Maximum variance
 
 ## Input File Examples
 

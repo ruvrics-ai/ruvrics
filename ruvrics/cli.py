@@ -174,7 +174,7 @@ def print_model_comparison(comparison: dict):
 
 
 @click.group()
-@click.version_option(version="0.2.0", prog_name="ruvrics")
+@click.version_option(version="0.2.3", prog_name="ruvrics")
 def main():
     """
     Ruvrics - Catch behavioral regressions in LLM systems
@@ -238,13 +238,22 @@ def main():
     type=click.Path(dir_okay=False),
     help="Save results to JSON file",
 )
-def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, compare, compare_model, output):
+@click.option(
+    "--temperature",
+    type=float,
+    default=0.0,
+    help="Temperature for LLM calls (default: 0.0). Use 0.3-0.7 to test real-world variance.",
+)
+def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, compare, compare_model, output, temperature):
     """
     Run stability analysis on an LLM system.
 
     Examples:
-        # Basic test
+        # Basic test (deterministic)
         ruvrics stability --input query.json --model gpt-4o-mini
+
+        # Test with production temperature
+        ruvrics stability --input query.json --model gpt-4o-mini --temperature 0.5
 
         # Save baseline
         ruvrics stability --input query.json --model gpt-4o-mini --save-baseline v1.0
@@ -259,6 +268,9 @@ def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, comp
         # Load configuration
         config = get_config()
         model_config = get_model_config(model)
+
+        # Override temperature if specified
+        model_config.temperature = temperature
 
         # Validate runs
         if runs < config.min_successful_runs:
@@ -285,6 +297,7 @@ def stability(prompt, input, model, runs, tools, tool_mocks, save_baseline, comp
         console.print("🔍 AI Stability Analysis", style="bold cyan")
         console.print(f"Model: {model} ({model_config.provider})")
         console.print(f"Runs: {runs}")
+        console.print(f"Temperature: {temperature}")
         if compare:
             console.print(f"Comparing to baseline: {compare}")
         if compare_model:

@@ -12,13 +12,15 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from pydantic import BaseModel, Field, field_validator
 
 from ruvrics.utils.errors import APIKeyMissingError, ModelNotSupportedError
 
 # Load environment variables from .env file if present
-load_dotenv()
+# find_dotenv(usecwd=True) searches current working directory and parent directories
+env_path = find_dotenv(usecwd=True)
+load_dotenv(env_path)
 
 
 class ModelConfig(BaseModel):
